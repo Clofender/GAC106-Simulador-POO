@@ -2,7 +2,9 @@
 
 Repositório para o trabalho prático da disciplina GAC106 (UFLA). Expansão do simulador "Raposas e Coelhos" para um ecossistema mais complexo e realista, aplicando conceitos de Programação Orientada a Objetos em Java.
 
-## Proposta de Expansão do Simulador – Tema: Ecossistema
+## PROPOSTA DE EXPANSÃO DO SIMULADOR “RAPOSAS E COELHOS”
+
+**Tema:** Ecossistema
 
 **Curso:** GAC106 – Práticas de Programação Orientada a Objetos
 
@@ -18,56 +20,54 @@ Repositório para o trabalho prático da disciplina GAC106 (UFLA). Expansão do 
 
 #### 1. Introdução
 
-Esta proposta tem como objetivo expandir o simulador original, que atualmente representa uma interação simples entre raposas e coelhos, para um ecossistema mais complexo e realista. A estrutura base do projeto será mantida, incluindo os componentes principais como o campo, os atores e a visualização. No entanto, serão introduzidos novos elementos como diferentes tipos de seres vivos (plantas e animais), variações de terreno, condições climáticas e uma cadeia alimentar mais elaborada. Além disso, será incluído um novo personagem: o Caçador, que desempenha um papel único como predador de todas as espécies. Também, para facilitar as alterações, o entendimento e o envolvimento de todo o grupo, o desenvolvimento do projeto será centralizado no repositório versionado no GitHub.
+Esta proposta tem como objetivo expandir o simulador original, que atualmente representa uma interação simples entre raposas e coelhos, para um ecossistema mais complexo e realista. A estrutura base do projeto será mantida, incluindo os componentes principais como o campo, os atores e a visualização. No entanto, serão introduzidos novos elementos como diferentes tipos de seres vivos (animais e caçadores), variações de terreno, condições climáticas e uma cadeia alimentar mais elaborada. Para facilitar as alterações, o entendimento e o envolvimento de todo o grupo, o desenvolvimento do projeto será centralizado no repositório versionado no GitHub.
 
-#### 2. Componentes do Ecossistema
+#### 2. Estrutura Geral do Simulador
 
-O simulador será composto por um sistema biológico com plantas e animais, cada um com comportamentos e interações específicas, formando uma cadeia alimentar.
+O simulador será composto por dois grandes sistemas:
+* **Sistema Biológico:** Inclui os seres vivos, divididos em animais e caçadores, cada um com comportamentos e interações específicas.
+* **Sistema Ambiental:** Responsável por definir a estação do ano, influenciando diretamente o comportamento dos seres vivos.
 
-* **Plantas**
-    * **Grama**
-        * **Comportamento:** É a base da cadeia alimentar. Surge em células livres, se espalha probabilisticamente para células vizinhas e serve de alimento para herbívoros. Quando consumida, a célula volta a ser solo exposto.
+A cada ciclo de simulação, o ambiente muda, afetando a reprodução, movimentação e sobrevivência das espécies. Assim, os animais não dependerão apenas de idade e energia, mas também das condições externas.
 
-* **Animais e Cadeia Alimentar**
-    * **Coelho (Herbívoro Pequeno)**
-        * **Comportamento:** Alimenta-se de grama e possui alta taxa de reprodução. É caçado por raposas, leões e pelo caçador. Morre de fome ou velhice.
-    * **Búfalo (Herbívoro Grande)**
-        * **Comportamento:** Alimenta-se de grama, reproduz-se mais lentamente que o coelho e fornece mais energia aos predadores. É caçado por leões e pelo caçador. Morre de fome ou velhice.
-    * **Raposa (Carnívoro)**
-        * **Comportamento:** Alimenta-se exclusivamente de coelhos. É caçada por leões e pelo caçador. Morre de fome ou velhice.
-    * **Leão (Superpredador)**
-        * **Comportamento:** Predador de topo, caça coelhos, búfalos e raposas, com ganho de energia variável. Não é caçado por outros animais. Morre de fome ou velhice.
-    * **Caçador (Predador Universal)**
-        * **Comportamento:** Um ator especial que pode caçar qualquer animal. Possui um comportamento cíclico: sai de sua "Casa" para caçar, e ao abater uma presa, retorna para a casa. Não caça durante o inverno e não pode atravessar a água.
+#### 3. Atores e Cadeia Alimentar
 
-#### 3. Sistema Ambiental e Terreno
+Serão introduzidos cinco tipos de atores, cada um com características distintas:
 
-O ambiente do simulador será dinâmico, influenciado pelo terreno, clima e estações do ano.
+* **Coelho (Herbívoro Pequeno)**
+    * **Comportamento:** Reproduz-se com mais frequência que os demais herbívoros. Pode morrer de fome, velhice, por superlotação (não ter para onde se locomover) ou ser caçado por raposas, leões ou o caçador.
+* **Búfalo (Herbívoro Grande)**
+    * **Comportamento:** Reproduz-se menos que o coelho, mas fornece mais energia aos predadores quando é caçado. Pode morrer de fome, velhice, por superlotação (não ter para onde se locomover) ou ser caçado por leões ou o caçador.
+* **Raposa (Carnívora)**
+    * **Comportamento:** Alimenta-se exclusivamente de coelhos. Reproduz-se com base em idade e energia. Pode morrer de fome, velhice ou ser caçada por leões ou o caçador.
+* **Leão (Superpredador)**
+    * **Comportamento:** Caça coelhos, raposas e búfalos. O ganho de energia varia conforme a presa (búfalo > raposa > coelho). Morre de fome ou velhice.
+* **Caçador (Predador Universal)**
+    * **Comportamento:** Pode caçar qualquer animal do simulador. Após uma caça, retorna automaticamente para sua célula de origem ("Casa do Caçador"). Possui um comportamento cíclico e não caça durante o inverno.
+
+#### 4. Terreno e Ambiente
+
+O mapa da simulação será composto por diferentes tipos de terreno e será influenciado por um sistema de estações.
 
 * **Tipos de Terreno**
-    * **Grama:** Permite a movimentação e serve de alimento.
-    * **Solo Exposto:** Permite a movimentação, mas não possui recursos.
-    * **Água:** Funciona como uma barreira natural intransponível para todos os atores. Ocupará cerca de 10% do mapa em blocos aglomerados.
+    * **Floresta:** Área principal de movimentação dos seres vivos. Contém árvores, que funcionam como obstáculos intransponíveis.
+    * **Água:** Funciona como barreira natural. Nenhum animal pode ocupar ou atravessar essas células. Cerca de 10% do mapa será composto por água em blocos aglomerados.
 
-* **Sistema de Clima e Estações**
-    * **Climas (Duração de 5 ciclos):**
-        * **Ensolarado:** Aumenta a taxa de reprodução animal e de propagação da grama.
-        * **Chuvoso:** Reduz a reprodução animal, mas acelera o crescimento da grama.
-        * **Nublado:** Condições padrão, sem alterações significativas.
-    * **Estações (Ciclo Fixo):**
-        * **Primavera:** Favorece o crescimento de plantas.
+* **Estações do Ano**
+    * As estações surgem de forma cíclica (Primavera -> Verão -> Outono -> Inverno) e cada uma dura 50 ciclos (steps).
+        * **Primavera:** Favorece o crescimento das plantas (efeito a ser definido, ex: mais comida para herbívoros).
         * **Verão:** Aumenta a reprodução animal.
-        * **Outono:** Reduz a reprodução e o crescimento vegetal.
-        * **Inverno:** Reduz drasticamente a reprodução de todos os seres vivos. O caçador não caça nesta estação.
+        * **Outono:** Reduz a reprodução e a propagação vegetal.
+        * **Inverno:** Diminui significativamente a reprodução animal. Os caçadores não caçam nesta estação.
 
-#### 4. Interface e Controles (GUI)
+#### 5. Visualização e Controles (GUI)
 
-A interface gráfica será aprimorada para refletir a maior complexidade do ecossistema.
+A interface gráfica seguirá o modelo do simulador original, com melhorias:
 
-* Indicadores de população para cada espécie.
-* Controles básicos: Iniciar, Pausar, Resetar e Avançar um ciclo.
-* Menu inicial para permitir que o jogador escolha a estação do ano em que a simulação se inicia.
+* Indicadores de população por espécie e de animais mortos pelo caçador.
+* Controles básicos: Iniciar, Pausar, Resetar, Avançar um ciclo.
+* Menu inicial para escolher a estação do ano inicial e a quantidade de caçadores.
 
-#### 5. Conclusão
+#### 6. Conclusão
 
-Com esta expansão, o simulador evolui de uma simples interação predador-presa para um ecossistema dinâmico. As interdependências entre plantas, animais, terreno e clima criam um ambiente complexo e realista. O caçador, em particular, introduz uma camada de imprevisibilidade, atuando como um agente de controle populacional que afeta toda a cadeia alimentar, tornando a simulação mais estratégica e desafiadora.
+Com esta expansão, o simulador evolui para um ecossistema mais dinâmico. Os carnívoros controlam a população de herbívoros e o caçador atua como um agente de equilíbrio final. O sistema ambiental adiciona variabilidade e desafio, exigindo estratégias adaptativas das espécies. A presença de terrenos variados e obstáculos naturais torna o espaço mais estratégico, enquanto o caçador introduz uma nova camada de imprevisibilidade e controle populacional.
