@@ -4,189 +4,169 @@ import java.util.LinkedList;
 import java.util.Random;
 
 /**
- * Represent a rectangular grid of field positions.
- * Each position is able to store a single animal.
+ * Representa uma grade retangular de posições do campo.
+ * Cada posição pode armazenar um único animal.
+ * * @author David J. Barnes and Michael Kolling
  * 
- * @author David J. Barnes and Michael Kolling
- * @version 2002-04-09
+ * @version 2025
  */
-public class Field
-{
+public class Field {
     private static final Random rand = new Random();
-    
-    // The depth and width of the field.
+
+    // A profundidade e largura do campo.
     private int depth, width;
-    // Storage for the animals.
-    private Object[][] field;
+    // Armazenamento para os animais.
+    private Animal[][] field;
 
     /**
-     * Represent a field of the given dimensions.
-     * @param depth The depth of the field.
-     * @param width The width of the field.
+     * Representa um campo com as dimensões dadas.
+     * * @param depth A profundidade do campo.
+     * * @param width A largura do campo.
      */
-    public Field(int depth, int width)
-    {
+    public Field(int depth, int width) {
         this.depth = depth;
         this.width = width;
-        field = new Object[depth][width];
+        field = new Animal[depth][width];
     }
-    
+
     /**
-     * Empty the field.
+     * Esvazia o campo.
      */
-    public void clear()
-    {
-        for(int row = 0; row < depth; row++) {
-            for(int col = 0; col < width; col++) {
+    public void clear() {
+        for (int row = 0; row < depth; row++) {
+            for (int col = 0; col < width; col++) {
                 field[row][col] = null;
             }
         }
     }
-    
+
     /**
-     * Place an animal at the given location.
-     * If there is already an animal at the location it will
-     * be lost.
-     * @param animal The animal to be placed.
-     * @param row Row coordinate of the location.
-     * @param col Column coordinate of the location.
+     * Posiciona um animal no local dado.
+     * Se já houver um animal lá, ele será perdido.
+     * * @param animal O animal a ser posicionado.
+     * * @param row Coordenada da linha.
+     * 
+     * @param col Coordenada da coluna.
      */
-    public void place(Object animal, int row, int col)
-    {
+    public void place(Animal animal, int row, int col) {
         place(animal, new Location(row, col));
     }
-    
+
     /**
-     * Place an animal at the given location.
-     * If there is already an animal at the location it will
-     * be lost.
-     * @param animal The animal to be placed.
-     * @param location Where to place the animal.
+     * Posiciona um animal no local dado.
+     * Se já houver um animal lá, ele será perdido.
+     * * @param animal O animal a ser posicionado.
+     * * @param location Onde posicionar o animal.
      */
-    public void place(Object animal, Location location)
-    {
+    public void place(Animal animal, Location location) {
         field[location.getRow()][location.getCol()] = animal;
     }
-    
+
     /**
-     * Return the animal at the given location, if any.
-     * @param location Where in the field.
-     * @return The animal at the given location, or null if there is none.
+     * Retorna o animal no local dado, se houver.
+     * * @param location Onde no campo.
+     * * @return O animal no local, ou null se não houver.
      */
-    public Object getObjectAt(Location location)
-    {
+    public Animal getObjectAt(Location location) {
         return getObjectAt(location.getRow(), location.getCol());
     }
-    
+
     /**
-     * Return the animal at the given location, if any.
-     * @param row The desired row.
-     * @param col The desired column.
-     * @return The animal at the given location, or null if there is none.
+     * Retorna o animal no local dado, se houver.
+     * * @param row A linha desejada.
+     * * @param col A coluna desejada.
+     * 
+     * @return O animal no local, ou null se não houver.
      */
-    public Object getObjectAt(int row, int col)
-    {
+    public Animal getObjectAt(int row, int col) {
         return field[row][col];
     }
-    
+
     /**
-     * Generate a random location that is adjacent to the
-     * given location, or is the same location.
-     * The returned location will be within the valid bounds
-     * of the field.
-     * @param location The location from which to generate an adjacency.
-     * @return A valid location within the grid area. This
-     *         may be the same object as the location parameter.
+     * Gera uma localização aleatória adjacente ao local dado,
+     * ou o mesmo local.
+     * O local retornado estará dentro dos limites válidos do campo.
+     * * @param location O local a partir do qual gerar um adjacente.
+     * * @return Um local válido dentro da área da grade.
      */
-    public Location randomAdjacentLocation(Location location)
-    {
+    public Location randomAdjacentLocation(Location location) {
         int row = location.getRow();
         int col = location.getCol();
-        // Generate an offset of -1, 0, or +1 for both the current row and col.
+        // Gera um deslocamento de -1, 0, ou +1 para linha e coluna.
         int nextRow = row + rand.nextInt(3) - 1;
         int nextCol = col + rand.nextInt(3) - 1;
-        // Check in case the new location is outside the bounds.
-        if(nextRow < 0 || nextRow >= depth || nextCol < 0 || nextCol >= width) {
+        // Verifica se o novo local está fora dos limites.
+        if (nextRow < 0 || nextRow >= depth || nextCol < 0 || nextCol >= width) {
             return location;
-        }
-        else if(nextRow != row || nextCol != col) {
+        } else if (nextRow != row || nextCol != col) {
             return new Location(nextRow, nextCol);
-        }
-        else {
+        } else {
             return location;
         }
     }
-    
+
     /**
-     * Try to find a free location that is adjacent to the
-     * given location. If there is none, then return the current
-     * location if it is free. If not, return null.
-     * The returned location will be within the valid bounds
-     * of the field.
-     * @param location The location from which to generate an adjacency.
-     * @return A valid location within the grid area. This may be the
-     *         same object as the location parameter, or null if all
-     *         locations around are full.
+     * Tenta encontrar um local livre adjacente ao local dado.
+     * Se não houver, retorna o local atual se estiver livre.
+     * Se não, retorna null.
+     * O local retornado estará dentro dos limites válidos.
+     * * @param location O local a partir do qual gerar um adjacente.
+     * * @return Um local válido, ou null se todos ao redor estiverem ocupados.
      */
-    public Location freeAdjacentLocation(Location location)
-    {
-        Iterator adjacent = adjacentLocations(location);
-        while(adjacent.hasNext()) {
-            Location next = (Location) adjacent.next();
-            if(field[next.getRow()][next.getCol()] == null) {
+    public Location freeAdjacentLocation(Location location) {
+        Iterator<Location> adjacent = adjacentLocations(location);
+        while (adjacent.hasNext()) {
+            Location next = adjacent.next();
+            if (field[next.getRow()][next.getCol()] == null) {
                 return next;
             }
         }
-        // check whether current location is free
-        if(field[location.getRow()][location.getCol()] == null) {
+        // verifica se o local atual está livre
+        if (field[location.getRow()][location.getCol()] == null) {
             return location;
-        } 
-        else {
+        } else {
             return null;
         }
     }
 
     /**
-     * Generate an iterator over a shuffled list of locations adjacent
-     * to the given one. The list will not include the location itself.
-     * All locations will lie within the grid.
-     * @param location The location from which to generate adjacencies.
-     * @return An iterator over locations adjacent to that given.
+     * Gera um iterador sobre uma lista embaralhada de locais adjacentes
+     * ao local dado. A lista não incluirá o próprio local.
+     * Todos os locais estarão dentro da grade.
+     * * @param location O local a partir do qual gerar adjacências.
+     * * @return Um iterador sobre locais adjacentes.
      */
-    public Iterator adjacentLocations(Location location)
-    {
+    public Iterator<Location> adjacentLocations(Location location) {
         int row = location.getRow();
         int col = location.getCol();
-        LinkedList locations = new LinkedList();
-        for(int roffset = -1; roffset <= 1; roffset++) {
+        LinkedList<Location> locations = new LinkedList<>();
+        for (int roffset = -1; roffset <= 1; roffset++) {
             int nextRow = row + roffset;
-            if(nextRow >= 0 && nextRow < depth) {
-                for(int coffset = -1; coffset <= 1; coffset++) {
+            if (nextRow >= 0 && nextRow < depth) {
+                for (int coffset = -1; coffset <= 1; coffset++) {
                     int nextCol = col + coffset;
-                    // Exclude invalid locations and the original location.
-                    if(nextCol >= 0 && nextCol < width && (roffset != 0 || coffset != 0)) {
+                    // Exclui locais inválidos e o local original.
+                    if (nextCol >= 0 && nextCol < width && (roffset != 0 || coffset != 0)) {
                         locations.add(new Location(nextRow, nextCol));
                     }
                 }
             }
         }
-        Collections.shuffle(locations,rand);
+        Collections.shuffle(locations, rand);
         return locations.iterator();
     }
 
     /**
-     * @return The depth of the field.
+     * @return A profundidade do campo.
      */
-    public int getDepth()
-    {
+    public int getDepth() {
         return depth;
     }
-    
+
     /**
-     * @return The width of the field.
+     * @return A largura do campo.
      */
-    public int getWidth()
-    {
+    public int getWidth() {
         return width;
     }
 }
