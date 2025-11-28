@@ -1,0 +1,110 @@
+import java.util.List;
+public class Hunter implements Actor {
+    // ---------------------------------------------------------
+    private Location location;
+    private Location homeLocation;
+    private int kills;
+    private boolean active;
+
+    // ---------------------------------------------------------
+    // Construtor
+    // ---------------------------------------------------------
+    public Hunter(Location home) {
+        this.homeLocation = home;
+        this.location = home;
+        this.alive = true;
+        this.kills = 0;
+        this.active = true; // pode ser alterado pelo clima/ciclo
+    }
+
+    // ---------------------------------------------------------
+    // Métodos da interface Actor
+    // ---------------------------------------------------------
+    @Override
+    public void act(Field currentField, Field updatedField, List<Animal> newAnimals,WeatherSystem weather) {
+        if(!alive) return;
+
+        // INVERNO → não caça
+    if (weather.getCurrentSeason()  == Season.WINTER) {
+        // regra comum: caçador volta pra casa
+        returnHome(updatedField);
+        updatedField.place((Animal)this, location);
+        return;
+    }
+
+        if(!active) {
+            // Caçador inativo → retorna para casa
+            returnHome(updatedField);
+            return;
+        }
+
+        // Caçar
+        goHunting(currentField, updatedField);
+
+        // Após a ação, sempre se mover para o updatedField
+        updatedField.place(this, location);
+    }
+
+    @Override
+    public boolean isAlive() {
+        return alive;
+    }
+
+    @Override
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    @Override
+    public Location getLocation() {
+        return location;
+    }
+
+    // ---------------------------------------------------------
+    // Métodos específicos de Hunter
+    // ---------------------------------------------------------
+    public int getKills() {
+        return kills;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    /**
+     * Lógica de caça: o hunter procura por um animal nas adjacências.
+     */
+    public void goHunting(Field currentField, Field updatedField) {
+        List<Location> adjacent = currentField.adjacentLocations(location);
+
+        for(Location loc : adjacent) {
+            Object obj = currentField.getObjectAt(loc);
+
+            if(obj instanceof Actor prey && !(prey instanceof Hunter)) {
+
+                // matar a presa
+                prey.setLocation(null); 
+               
+                kills++;
+
+                // mover para o local da caça
+                location = loc;
+                return;
+            }
+        }
+
+        // Se nada foi caçado, mover aleatoriamente
+        Location newLoc = currentField.freeAdjacentLocation(location);
+        if(newLoc != null) {
+            location = newLoc;
+        }
+    }
+
+    /**
+     * Retorna à localização inicial ("casa").
+     */
+    public void returnHome(Field updatedField) {
+        location = homeLocation;
+        updatedField.place(this, homeLocation);
+    }
+    }
