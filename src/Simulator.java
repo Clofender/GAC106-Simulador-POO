@@ -8,7 +8,7 @@ import java.awt.Color;
 /**
  * Um simulador simples de predador-presa, baseado em um campo
  * contendo coelhos e raposas.
- * * @author David J. Barnes and Michael Kolling
+ * * @author David J. Barnes and Michael Kolling (modificado)
  * 
  * @version 2025
  */
@@ -35,6 +35,9 @@ public class Simulator {
     // Uma visão gráfica da simulação.
     private SimulatorView view;
 
+    // Sistema climático
+    private WeatherSystem weatherSystem;
+
     /**
      * Constrói um campo de simulação com tamanho padrão.
      */
@@ -60,6 +63,9 @@ public class Simulator {
 
         field = new Field(depth, width);
         updatedField = new Field(depth, width);
+
+        // Inicializa o sistema climático
+        weatherSystem = new WeatherSystem();
 
         // Cria a visão
         view = new SimulatorView(depth, width);
@@ -95,10 +101,15 @@ public class Simulator {
         step++;
         newAnimals.clear();
 
+        // Avança o tempo no sistema climático
+        weatherSystem.advanceTime();
+
         // Permite que todos os animais ajam.
         for (Iterator<Animal> iter = animals.iterator(); iter.hasNext();) {
             Animal animal = iter.next();
             if (animal.isAlive()) {
+                // Nota: A Pessoa 1 deverá atualizar o método act para receber o weatherSystem
+                // se necessário
                 animal.act(field, updatedField, newAnimals);
             } else {
                 iter.remove(); // Remove animais mortos da coleção
@@ -114,8 +125,8 @@ public class Simulator {
         updatedField = temp;
         updatedField.clear();
 
-        // exibe o novo campo na tela
-        view.showStatus(step, field);
+        // Exibe o novo campo na tela, passando a estação atual
+        view.showStatus(step, field, weatherSystem.getCurrentSeason());
     }
 
     /**
@@ -126,10 +137,14 @@ public class Simulator {
         animals.clear();
         field.clear();
         updatedField.clear();
+
+        // Reseta o clima
+        weatherSystem = new WeatherSystem();
+
         populate(field);
 
         // Mostra o estado inicial na visão.
-        view.showStatus(step, field);
+        view.showStatus(step, field, weatherSystem.getCurrentSeason());
     }
 
     /**
@@ -155,5 +170,14 @@ public class Simulator {
             }
         }
         Collections.shuffle(animals);
+    }
+
+    /**
+     * Retorna o sistema de clima.
+     * 
+     * @return O sistema climático atual.
+     */
+    public WeatherSystem getWeatherSystem() {
+        return weatherSystem;
     }
 }
