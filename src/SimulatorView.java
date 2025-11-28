@@ -103,17 +103,20 @@ public class SimulatorView extends JFrame {
         stats.reset();
         fieldView.preparePaint();
 
+        // PRIMEIRO: Desenhar o terreno de fundo
+        drawTerrainGrid(field);
+
+        // DEPOIS: Desenhar os animais por cima do terreno
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
                 Animal animal = field.getObjectAt(row, col);
                 if (animal != null) {
                     stats.incrementCount(animal.getClass());
                     fieldView.drawMark(col, row, getColor(animal.getClass()));
-                } else {
-                    fieldView.drawMark(col, row, EMPTY_COLOR);
                 }
             }
         }
+
         stats.countFinished();
 
         population.setText(POPULATION_PREFIX + stats.getPopulationDetails(field));
@@ -204,6 +207,20 @@ public class SimulatorView extends JFrame {
         public void paintComponent(Graphics g) {
             if (fieldImage != null) {
                 g.drawImage(fieldImage, 0, 0, null);
+            }
+        }
+    }
+
+    /**
+     * Desenha a grade de terreno como fundo da simulação.
+     * 
+     * @param field O campo contendo as informações do terreno
+     */
+    private void drawTerrainGrid(Field field) {
+        for (int row = 0; row < field.getDepth(); row++) {
+            for (int col = 0; col < field.getWidth(); col++) {
+                TerrainType terrain = field.getTerrainAt(row, col);
+                fieldView.drawMark(col, row, terrain.getColor());
             }
         }
     }

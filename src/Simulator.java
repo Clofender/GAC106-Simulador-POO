@@ -57,20 +57,21 @@ public class Simulator {
             depth = DEFAULT_DEPTH;
             width = DEFAULT_WIDTH;
         }
-
+        // Carregar mapa antes de criar os campos
+        TerrainType[][] terrainMap = MapLoader.loadMap("Mapas/mapa2.txt", width, depth);
+        
         animals = new ArrayList<Animal>();
         newAnimals = new ArrayList<Animal>();
-
-        field = new Field(depth, width);
-        updatedField = new Field(depth, width);
+        field = new Field(depth, width, terrainMap);
+        updatedField = new Field(depth, width, terrainMap);
 
         // Inicializa o sistema climático
         weatherSystem = new WeatherSystem();
 
         // Cria a visão
         view = new SimulatorView(depth, width);
-        view.setColor(Fox.class, Color.blue);
-        view.setColor(Rabbit.class, Color.orange);
+        view.setColor(Fox.class, Color.RED);    // Raposa vermelha
+        view.setColor(Rabbit.class, Color.PINK); // Coelho rosa
 
         // Configura um ponto de partida válido.
         reset();
@@ -149,26 +150,35 @@ public class Simulator {
 
     /**
      * Popula o campo com raposas e coelhos.
+     * Animais só são colocados em terrenos transitáveis.
      */
     private void populate(Field field) {
         Random rand = new Random();
         field.clear();
+        
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
-                if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
-                    Fox fox = new Fox(true);
-                    animals.add(fox);
-                    fox.setLocation(row, col);
-                    field.place(fox, row, col);
-                } else if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
-                    Rabbit rabbit = new Rabbit(true);
-                    animals.add(rabbit);
-                    rabbit.setLocation(row, col);
-                    field.place(rabbit, row, col);
+                Location location = new Location(row, col);
+                TerrainType terrain = field.getTerrainAt(location);
+                
+                // Só coloca animais em terrenos transitáveis
+                if (terrain.isTraversable()) {
+                    if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
+                        Fox fox = new Fox(true);
+                        animals.add(fox);
+                        fox.setLocation(row, col);
+                        field.place(fox, row, col);
+                    } else if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
+                        Rabbit rabbit = new Rabbit(true);
+                        animals.add(rabbit);
+                        rabbit.setLocation(row, col);
+                        field.place(rabbit, row, col);
+                    }
                 }
-                // else deixa o local vazio.
+                // else deixa o local vazio (para terrenos intransitáveis)
             }
         }
+        
         Collections.shuffle(animals);
     }
 
