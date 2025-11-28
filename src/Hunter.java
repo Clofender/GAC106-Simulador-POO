@@ -1,4 +1,7 @@
+import java.util.Iterator;
 import java.util.List;
+
+
 
 
 public class Hunter implements Actor {
@@ -7,6 +10,7 @@ public class Hunter implements Actor {
     private Location homeLocation;
     private int kills;
     private boolean active;
+    private boolean alive;
 
     // ---------------------------------------------------------
     // Construtor
@@ -22,29 +26,30 @@ public class Hunter implements Actor {
     // ---------------------------------------------------------
     // Métodos da interface Actor
     // ---------------------------------------------------------
-    @Override
-    public void act(Field currentField, Field updatedField, List<Animal> newAnimals,WeatherSystem weather) {
+    public void act(Field currentField, Field updatedField, List<Animal> newAnimals, WeatherSystem weather) {
         if(!alive) return;
 
-        // INVERNO → não caça
-    if (weather.getCurrentSeason()  == Season.WINTER) {
+    // INVERNO → não caça
+    if (weather.getCurrentSeason() == Season.WINTER) {
         // regra comum: caçador volta pra casa
         returnHome(updatedField);
-        updatedField.place((Animal)this, location);
         return;
     }
 
-        if(!active) {
-            // Caçador inativo → retorna para casa
-            returnHome(updatedField);
-            return;
-        }
+         if(!active) {
+        // Caçador inativo → retorna para casa
+        returnHome(updatedField);
+        return;
+    }
 
         // Caçar
         goHunting(currentField, updatedField);
-
-        // Após a ação, sempre se mover para o updatedField
-        updatedField.place(this, location);
+}
+        /**
+    * Retorna à localização inicial ("casa").
+    */
+        public void returnHome(Field updatedField) {
+        location = homeLocation;
     }
 
     @Override
@@ -77,9 +82,9 @@ public class Hunter implements Actor {
      * Lógica de caça: o hunter procura por um animal nas adjacências.
      */
     public void goHunting(Field currentField, Field updatedField) {
-        List<Location> adjacent = currentField.adjacentLocations(location);
-
-        for(Location loc : adjacent) {
+        Iterator<Location> adjacentLocs = currentField.adjacentLocations(location);
+        while(adjacentLocs.hasNext()) {
+            Location loc = adjacentLocs.next();
             Object obj = currentField.getObjectAt(loc);
 
             if(obj instanceof Actor prey && !(prey instanceof Hunter)) {
@@ -101,12 +106,5 @@ public class Hunter implements Actor {
             location = newLoc;
         }
     }
+}
 
-    /**
-     * Retorna à localização inicial ("casa").
-     */
-    public void returnHome(Field updatedField) {
-        location = homeLocation;
-        updatedField.place(this, homeLocation);
-    }
-    }
