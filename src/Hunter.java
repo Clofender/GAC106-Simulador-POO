@@ -1,4 +1,6 @@
 import java.util.List;
+
+
 public class Hunter implements Actor {
     // ---------------------------------------------------------
     private Location location;
