@@ -21,7 +21,9 @@ public class SimulatorView extends JFrame {
 
     private final String STEP_PREFIX = "Passo: ";
     private final String POPULATION_PREFIX = "População: ";
-    private JLabel stepLabel, population;
+    private final String SEASON_PREFIX = "Estação: ";
+
+    private JLabel stepLabel, population, seasonLabel;
     private FieldView fieldView;
 
     // Um mapa para armazenar cores para os participantes da simulação
@@ -38,16 +40,23 @@ public class SimulatorView extends JFrame {
         stats = new FieldStats();
         colors = new HashMap<>();
 
-        setTitle("Simulação Raposas e Coelhos");
+        setTitle("Simulação Raposas e Coelhos (com Clima)");
         stepLabel = new JLabel(STEP_PREFIX, JLabel.CENTER);
         population = new JLabel(POPULATION_PREFIX, JLabel.CENTER);
+        seasonLabel = new JLabel(SEASON_PREFIX, JLabel.CENTER);
 
         setLocation(100, 50);
 
         fieldView = new FieldView(height, width);
 
         Container contents = getContentPane();
-        contents.add(stepLabel, BorderLayout.NORTH);
+
+        // Painel superior para informações de passo e estação
+        JPanel topPanel = new JPanel(new GridLayout(2, 1));
+        topPanel.add(stepLabel);
+        topPanel.add(seasonLabel);
+
+        contents.add(topPanel, BorderLayout.NORTH);
         contents.add(fieldView, BorderLayout.CENTER);
         contents.add(population, BorderLayout.SOUTH);
         pack();
@@ -78,30 +87,36 @@ public class SimulatorView extends JFrame {
     }
 
     /**
-     * Mostra o estado atual do campo.
+     * Mostra o estado atual do campo e do clima.
      * * @param step Qual passo (iteração) é.
      * * @param field O campo a ser exibido.
+     * 
+     * @param currentSeason A estação do ano atual.
      */
-    public void showStatus(int step, Field field) {
+    public void showStatus(int step, Field field, Season currentSeason) {
         if (!isVisible())
             setVisible(true);
 
         stepLabel.setText(STEP_PREFIX + step);
+        seasonLabel.setText(SEASON_PREFIX + currentSeason.toString());
 
         stats.reset();
         fieldView.preparePaint();
 
+        // PRIMEIRO: Desenhar o terreno de fundo
+        drawTerrainGrid(field);
+
+        // DEPOIS: Desenhar os animais por cima do terreno
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
                 Animal animal = field.getObjectAt(row, col);
                 if (animal != null) {
                     stats.incrementCount(animal.getClass());
                     fieldView.drawMark(col, row, getColor(animal.getClass()));
-                } else {
-                    fieldView.drawMark(col, row, EMPTY_COLOR);
                 }
             }
         }
+
         stats.countFinished();
 
         population.setText(POPULATION_PREFIX + stats.getPopulationDetails(field));
@@ -122,8 +137,6 @@ public class SimulatorView extends JFrame {
      * uma classe aninhada (uma classe definida dentro de outra) que
      * define um componente customizado para a interface do usuário.
      * Este componente exibe o campo.
-     * Isso é material avançado de GUI - você pode ignorar
-     * para o seu projeto se quiser.
      */
     private class FieldView extends JPanel {
         private final int GRID_VIEW_SCALING_FACTOR = 6;
@@ -194,6 +207,20 @@ public class SimulatorView extends JFrame {
         public void paintComponent(Graphics g) {
             if (fieldImage != null) {
                 g.drawImage(fieldImage, 0, 0, null);
+            }
+        }
+    }
+
+    /**
+     * Desenha a grade de terreno como fundo da simulação.
+     * 
+     * @param field O campo contendo as informações do terreno
+     */
+    private void drawTerrainGrid(Field field) {
+        for (int row = 0; row < field.getDepth(); row++) {
+            for (int col = 0; col < field.getWidth(); col++) {
+                TerrainType terrain = field.getTerrainAt(row, col);
+                fieldView.drawMark(col, row, terrain.getColor());
             }
         }
     }

@@ -8,7 +8,7 @@ import java.awt.Color;
 /**
  * Um simulador simples de predador-presa, baseado em um campo
  * contendo coelhos e raposas.
- * * @author David J. Barnes and Michael Kolling
+ * * @author David J. Barnes and Michael Kolling (modificado)
  * 
  * @version 2025
  */
@@ -35,6 +35,9 @@ public class Simulator {
     // Uma visão gráfica da simulação.
     private SimulatorView view;
 
+    // Sistema climático
+    private WeatherSystem weatherSystem;
+
     /**
      * Constrói um campo de simulação com tamanho padrão.
      */
@@ -54,17 +57,21 @@ public class Simulator {
             depth = DEFAULT_DEPTH;
             width = DEFAULT_WIDTH;
         }
-
+        // Carregar mapa antes de criar os campos
+        TerrainType[][] terrainMap = MapLoader.loadMap("Mapas/mapa2.txt", width, depth);
+        
         animals = new ArrayList<Animal>();
         newAnimals = new ArrayList<Animal>();
+        field = new Field(depth, width, terrainMap);
+        updatedField = new Field(depth, width, terrainMap);
 
-        field = new Field(depth, width);
-        updatedField = new Field(depth, width);
+        // Inicializa o sistema climático
+        weatherSystem = new WeatherSystem();
 
         // Cria a visão
         view = new SimulatorView(depth, width);
-        view.setColor(Fox.class, Color.blue);
-        view.setColor(Rabbit.class, Color.orange);
+        view.setColor(Fox.class, Color.RED);    // Raposa vermelha
+        view.setColor(Rabbit.class, Color.PINK); // Coelho rosa
 
         // Configura um ponto de partida válido.
         reset();
@@ -95,10 +102,15 @@ public class Simulator {
         step++;
         newAnimals.clear();
 
+        // Avança o tempo no sistema climático
+        weatherSystem.advanceTime();
+
         // Permite que todos os animais ajam.
         for (Iterator<Animal> iter = animals.iterator(); iter.hasNext();) {
             Animal animal = iter.next();
             if (animal.isAlive()) {
+                // Nota: A Pessoa 1 deverá atualizar o método act para receber o weatherSystem
+                // se necessário
                 animal.act(field, updatedField, newAnimals);
             } else {
                 iter.remove(); // Remove animais mortos da coleção
@@ -114,8 +126,8 @@ public class Simulator {
         updatedField = temp;
         updatedField.clear();
 
-        // exibe o novo campo na tela
-        view.showStatus(step, field);
+        // Exibe o novo campo na tela, passando a estação atual
+        view.showStatus(step, field, weatherSystem.getCurrentSeason());
     }
 
     /**
@@ -126,34 +138,56 @@ public class Simulator {
         animals.clear();
         field.clear();
         updatedField.clear();
+
+        // Reseta o clima
+        weatherSystem = new WeatherSystem();
+
         populate(field);
 
         // Mostra o estado inicial na visão.
-        view.showStatus(step, field);
+        view.showStatus(step, field, weatherSystem.getCurrentSeason());
     }
 
     /**
      * Popula o campo com raposas e coelhos.
+     * Animais só são colocados em terrenos transitáveis.
      */
     private void populate(Field field) {
         Random rand = new Random();
         field.clear();
+        
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
-                if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
-                    Fox fox = new Fox(true);
-                    animals.add(fox);
-                    fox.setLocation(row, col);
-                    field.place(fox, row, col);
-                } else if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
-                    Rabbit rabbit = new Rabbit(true);
-                    animals.add(rabbit);
-                    rabbit.setLocation(row, col);
-                    field.place(rabbit, row, col);
+                Location location = new Location(row, col);
+                TerrainType terrain = field.getTerrainAt(location);
+                
+                // Só coloca animais em terrenos transitáveis
+                if (terrain.isTraversable()) {
+                    if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
+                        Fox fox = new Fox(true);
+                        animals.add(fox);
+                        fox.setLocation(row, col);
+                        field.place(fox, row, col);
+                    } else if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
+                        Rabbit rabbit = new Rabbit(true);
+                        animals.add(rabbit);
+                        rabbit.setLocation(row, col);
+                        field.place(rabbit, row, col);
+                    }
                 }
-                // else deixa o local vazio.
+                // else deixa o local vazio (para terrenos intransitáveis)
             }
         }
+        
         Collections.shuffle(animals);
+    }
+
+    /**
+     * Retorna o sistema de clima.
+     * 
+     * @return O sistema climático atual.
+     */
+    public WeatherSystem getWeatherSystem() {
+        return weatherSystem;
     }
 }
