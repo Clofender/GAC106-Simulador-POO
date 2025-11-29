@@ -1,5 +1,4 @@
-import java.util.List;
-import java.util.Iterator;
+
 
 /**
  * Um modelo simples de uma raposa.
@@ -8,18 +7,17 @@ import java.util.Iterator;
  * 
  * @version 2025
  */
-public class Fox extends Animal {
+public class Fox extends Predator {
     // --- Constantes Estáticas ---
     private static final int BREEDING_AGE = 10;
     private static final int MAX_AGE = 150;
     private static final double BREEDING_PROBABILITY = 0.09;
     private static final int MAX_LITTER_SIZE = 3;
-    private static final int RABBIT_FOOD_VALUE = 4;
+    private static final int FOOD_VALUE = 6;
 
     // --- Campos de Instância ---
 
     // Nível de fome da raposa, que aumenta comendo coelhos.
-    private int foodLevel;
 
     /**
      * Cria uma raposa. Pode ser recém-nascida (idade zero e sem fome)
@@ -28,12 +26,6 @@ public class Fox extends Animal {
      */
     public Fox(boolean randomAge) {
         super(randomAge); // Chama o construtor da superclasse Animal
-        if (randomAge) {
-            foodLevel = rand.nextInt(RABBIT_FOOD_VALUE);
-        } else {
-            // raposa recém-nascida
-            foodLevel = RABBIT_FOOD_VALUE;
-        }
     }
 
     /**
@@ -44,11 +36,6 @@ public class Fox extends Animal {
      * 
      * @param newAnimals Uma lista para adicionar novos animais.
      */
-    @Override
-    public void act(Field currentField, Field updatedField, List<Animal> newAnimals) {
-        hunt(currentField, updatedField, newAnimals);
-    }
-
     /**
      * Isso é o que a raposa faz na maior parte do tempo: caça coelhos.
      * No processo, ela pode procriar, morrer de fome ou de velhice.
@@ -57,44 +44,18 @@ public class Fox extends Animal {
      * 
      * @param newFoxes Uma lista para adicionar novas raposas.
      */
-    private void hunt(Field currentField, Field updatedField, List<Animal> newFoxes) {
-        incrementAge();
-        incrementHunger();
-        if (isAlive()) {
-            // Novos filhotes nascem em locais adjacentes.
-            int births = breed();
-            for (int b = 0; b < births; b++) {
-                Fox newFox = new Fox(false);
-                newFoxes.add(newFox);
-                Location loc = updatedField.randomAdjacentLocation(getLocation());
-                newFox.setLocation(loc);
-                updatedField.place(newFox, loc);
-            }
-            // Move em direção à fonte de comida, se encontrada.
-            Location newLocation = findFood(currentField, getLocation());
-            if (newLocation == null) { // sem comida - move aleatoriamente
-                newLocation = updatedField.freeAdjacentLocation(getLocation());
-            }
-            // Se há um local para se mover
-            if (newLocation != null) {
-                setLocation(newLocation);
-                updatedField.place(this, newLocation);
-            } else {
-                // Superlotação - não pode mover nem ficar parado
-                setDead();
-            }
-        }
+
+    @Override
+    protected Animal createYoung(boolean randomAge, Field field, Location loc) {
+        Fox young = new Fox(randomAge);
+        young.setLocation(loc);
+        field.place(young, loc);
+        return young;
     }
 
     /**
      * Deixa a raposa com mais fome. Pode resultar na morte da raposa.
      */
-    private void incrementHunger() {
-        foodLevel--;
-        if (foodLevel <= 0) {
-            setDead();
-        }
-    }
 
     /**
      * Procura por coelhos adjacentes à localização atual.
@@ -103,21 +64,20 @@ public class Fox extends Animal {
      * 
      * @return A localização da comida, ou null se não houver.
      */
-    private Location findFood(Field field, Location location) {
-        Iterator<Location> adjacentLocations = field.adjacentLocations(location);
-        while (adjacentLocations.hasNext()) {
-            Location where = adjacentLocations.next();
-            Animal animal = field.getObjectAt(where);
-            if (animal instanceof Rabbit) {
-                Rabbit rabbit = (Rabbit) animal;
-                if (rabbit.isAlive()) {
-                    rabbit.setEaten(); // Coelha morre
-                    foodLevel = RABBIT_FOOD_VALUE; // Raposa fica satisfeita
-                    return where;
-                }
-            }
-        }
-        return null;
+
+    @Override
+    protected boolean canEat(Object animal) {
+        return animal instanceof Rabbit;
+    }
+
+    @Override
+    public int getFoodValue() {
+        return FOOD_VALUE;
+    }
+
+    @Override
+    public int getMaxFoodValue() {
+        return 15;
     }
 
     // --- Implementação dos métodos abstratos de Animal ---

@@ -38,7 +38,21 @@ public abstract class Animal {
      * 
      * @param newAnimals Uma lista para adicionar novos animais.
      */
-    abstract public void act(Field currentField, Field updatedField, List<Animal> newAnimals);
+     public void act(Field currentField, Field updatedField, List<Animal> newAnimals) {
+        incrementAge();
+        if (isAlive()) {
+
+            giveBirth(newAnimals, updatedField);
+
+            Location newLocation = findNextLocation(currentField, updatedField);
+            if (newLocation != null) {
+                setLocation(newLocation);
+                updatedField.place(this, newLocation);
+            } else {
+                setDead(); // Superlotação
+            }
+        }
+    }
 
     /**
      * @return A idade máxima para esta espécie.
@@ -60,6 +74,22 @@ public abstract class Animal {
      */
     abstract protected int getMaxLitterSize();
 
+    protected abstract Location findNextLocation(Field currentField, Field updatedField);
+
+    protected abstract Animal createYoung(boolean randomAge, Field field, Location loc);
+
+    // lógica de nascimento 
+    protected void giveBirth(List<Animal> newAnimals, Field field) {
+        int births = breed();
+        for (int b = 0; b < births; b++) {
+            Location loc = field.randomAdjacentLocation(getLocation());
+            
+            Animal young = createYoung(false, field, loc);
+            if (young != null) {
+                newAnimals.add(young);
+            }
+        }
+    }
     /**
      * Aumenta a idade. Isso pode resultar na morte do animal.
      */
@@ -128,4 +158,9 @@ public abstract class Animal {
     public Location getLocation() {
         return location;
     }
+
+    /**
+     * @return O valor nutricional deste animal quando for comido.
+     */
+    public abstract int getFoodValue();
 }

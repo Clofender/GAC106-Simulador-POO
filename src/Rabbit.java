@@ -7,13 +7,13 @@ import java.util.List;
  * 
  * @version 2025
  */
-public class Rabbit extends Animal {
+public class Rabbit extends Herbivore {
     // --- Constantes Estáticas ---
     private static final int BREEDING_AGE = 5;
     private static final int MAX_AGE = 50;
     private static final double BREEDING_PROBABILITY = 0.15;
     private static final int MAX_LITTER_SIZE = 5;
-
+    private static final int FOOD_VALUE = 4;
     /**
      * Cria um novo coelho.
      * * @param randomAge Se true, o coelho terá idade aleatória.
@@ -30,39 +30,26 @@ public class Rabbit extends Animal {
      * 
      * @param newAnimals Uma lista para adicionar novos animais.
      */
-    @Override
-    public void act(Field currentField, Field updatedField, List<Animal> newAnimals) {
-        run(updatedField, newAnimals);
-    }
 
     /**
      * O que o coelho faz: corre. Às vezes procria ou morre de velhice.
      * * @param updatedField O campo atualizado.
      * * @param newRabbits Uma lista para adicionar novos coelhos.
      */
-    private void run(Field updatedField, List<Animal> newRabbits) {
-        incrementAge();
-        if (isAlive()) {
-            int births = breed();
-            for (int b = 0; b < births; b++) {
-                Rabbit newRabbit = new Rabbit(false);
-                newRabbits.add(newRabbit);
-                Location loc = updatedField.randomAdjacentLocation(getLocation());
-                newRabbit.setLocation(loc);
-                updatedField.place(newRabbit, loc);
-            }
-            Location newLocation = updatedField.freeAdjacentLocation(getLocation());
-            // Só se transfere para o novo campo se houver um local livre
-            if (newLocation != null) {
-                setLocation(newLocation);
-                updatedField.place(this, newLocation);
-            } else {
-                // Superlotação
-                setDead();
-            }
-        }
+
+    @Override
+    protected Animal createYoung(boolean randomAge, Field field, Location loc) {
+        Rabbit young = new Rabbit(randomAge);
+        young.setLocation(loc);
+        field.place(young, loc); // Importante colocar no field
+        return young;
     }
 
+    @Override
+    public int getFoodValue() {
+        return FOOD_VALUE;
+    }
+    
     /**
      * Avisa ao coelho que ele foi comido.
      */
