@@ -1,27 +1,36 @@
-import java.util.List;
 import java.util.Random;
+import java.util.ArrayList;
 
 /**
  * Uma classe abstrata que representa as características comuns
- * de todos os animais na simulação.
- * * @author David J. Barnes and Michael Kolling
+ * de todos os animais na simulação. Implementa a interface Actor
+ * para permitir tratamento polimórfico.
  * 
+ * @author David J. Barnes and Michael Kolling (base)
+ * @author TP_Grupo08 (modificações)
  * @version 2025
  */
-public abstract class Animal {
+public abstract class Animal implements Actor {
+    
     // Um gerador de números aleatórios compartilhado.
     protected static final Random rand = new Random();
-
+    
     // A idade do animal.
     private int age;
+    
     // Se o animal está vivo ou não.
     private boolean alive;
+    
     // A localização do animal.
     private Location location;
+    
+    // Referência ao sistema de clima (para efeitos sazonais)
+    protected static WeatherSystem weatherSystem;
 
     /**
      * Cria um novo animal.
-     * * @param randomAge Se true, o animal terá uma idade aleatória.
+     *
+     * @param randomAge Se true, o animal terá uma idade aleatória.
      */
     public Animal(boolean randomAge) {
         age = 0;
@@ -32,24 +41,64 @@ public abstract class Animal {
     }
 
     /**
-     * O método principal de ação do animal, a ser implementado pelas subclasses.
-     * * @param currentField O campo atual.
-     * * @param updatedField O campo atualizado.
-     * 
-     * @param newAnimals Uma lista para adicionar novos animais.
+     * Define o sistema de clima para todos os animais.
+     * Método estático para compartilhar a mesma instância entre todos os animais.
+     *
+     * @param weather O sistema de clima a ser usado.
      */
-     public void act(Field currentField, Field updatedField, List<Animal> newAnimals) {
+    public static void setWeatherSystem(WeatherSystem weather) {
+        weatherSystem = weather;
+    }
+
+    /**
+     * Implementação do método da interface Actor.
+     * Executa a ação principal do animal no passo atual.
+     *
+     * @param currentField O campo atual.
+     * @param updatedField O campo atualizado.
+     * @param newActors Lista para adicionar novos atores.
+     */
+    @Override
+    public void act(Field currentField, Field updatedField, java.util.List<Actor> newActors) {
+        // Executar ação principal do animal
         incrementAge();
         if (isAlive()) {
-
+            // Converter List<Actor> para List<Animal> para giveBirth
+            java.util.List<Animal> newAnimals = new ArrayList<>();
             giveBirth(newAnimals, updatedField);
-
+            
+            // Adicionar os novos animais de volta à lista de atores
+            for (Animal animal : newAnimals) {
+                newActors.add(animal);
+            }
+            
             Location newLocation = findNextLocation(currentField, updatedField);
             if (newLocation != null) {
                 setLocation(newLocation);
                 updatedField.place(this, newLocation);
             } else {
                 setDead(); // Superlotação
+            }
+        }
+    }
+
+    /**
+     * Método de compatibilidade - mantém interface antiga para o simulador
+     * Usa nome diferente para evitar conflito de type erasure
+     *
+     * @param currentField O campo atual.
+     * @param updatedField O campo atualizado.
+     * @param newAnimals Lista para adicionar novos animais.
+     */
+    public void actWithAnimals(Field currentField, Field updatedField, java.util.List<Animal> newAnimals) {
+        // Converter para List<Actor> e chamar o novo método
+        java.util.List<Actor> newActors = new ArrayList<>();
+        act(currentField, updatedField, newActors);
+        
+        // Atualizar a lista original com quaisquer novos animais
+        for (Actor actor : newActors) {
+            if (actor instanceof Animal) {
+                newAnimals.add((Animal) actor);
             }
         }
     }
@@ -74,22 +123,44 @@ public abstract class Animal {
      */
     abstract protected int getMaxLitterSize();
 
+    /**
+     * Encontra a próxima localização para onde o animal deve se mover.
+     *
+     * @param currentField O campo atual.
+     * @param updatedField O campo atualizado.
+     * @return A próxima localização, ou null se não puder se mover.
+     */
     protected abstract Location findNextLocation(Field currentField, Field updatedField);
 
+    /**
+     * Cria um novo animal jovem.
+     *
+     * @param randomAge Se true, o jovem terá idade aleatória.
+     * @param field O campo onde o jovem será colocado.
+     * @param loc A localização do jovem.
+     * @return O animal jovem criado.
+     */
     protected abstract Animal createYoung(boolean randomAge, Field field, Location loc);
 
-    // lógica de nascimento 
-    protected void giveBirth(List<Animal> newAnimals, Field field) {
+    /**
+     * Lógica de nascimento - cria novos animais através de reprodução.
+     *
+     * @param newAnimals Lista para adicionar os novos animais.
+     * @param field O campo onde os novos animais serão colocados.
+     */
+    protected void giveBirth(java.util.List<Animal> newAnimals, Field field) {
         int births = breed();
         for (int b = 0; b < births; b++) {
-            Location loc = field.randomAdjacentLocation(getLocation());
-            
-            Animal young = createYoung(false, field, loc);
-            if (young != null) {
-                newAnimals.add(young);
+            Location loc = field.freeAdjacentLocation(getLocation());
+            if (loc != null) {
+                Animal young = createYoung(false, field, loc);
+                if (young != null) {
+                    newAnimals.add(young);
+                }
             }
         }
     }
+
     /**
      * Aumenta a idade. Isso pode resultar na morte do animal.
      */
@@ -102,11 +173,21 @@ public abstract class Animal {
 
     /**
      * Gera um número de nascimentos, se o animal puder procriar.
-     * * @return O número de nascimentos (pode ser zero).
+     * Aplica efeitos sazonais se o sistema de clima estiver disponível.
+     *
+     * @return O número de nascimentos (pode ser zero).
      */
     protected int breed() {
         int births = 0;
-        if (canBreed() && rand.nextDouble() <= getBreedingProbability()) {
+        double probability = getBreedingProbability();
+        
+        // Aplicar efeito sazonal se disponível
+        if (weatherSystem != null) {
+            Season currentSeason = weatherSystem.getCurrentSeason();
+            probability *= currentSeason.getBreedingFactor();
+        }
+        
+        if (canBreed() && rand.nextDouble() <= probability) {
             births = rand.nextInt(getMaxLitterSize()) + 1;
         }
         return births;
@@ -114,7 +195,8 @@ public abstract class Animal {
 
     /**
      * Um animal pode procriar se atingiu a idade de procriação.
-     * * @return true se o animal pode procriar.
+     *
+     * @return true se o animal pode procriar.
      */
     private boolean canBreed() {
         return age >= getBreedingAge();
@@ -129,24 +211,29 @@ public abstract class Animal {
 
     /**
      * Verifica se o animal ainda está vivo.
-     * * @return True se o animal está vivo.
+     *
+     * @return True se o animal está vivo.
      */
+    @Override
     public boolean isAlive() {
         return alive;
     }
 
     /**
      * Define a localização do animal.
-     * * @param location A nova localização.
+     *
+     * @param location A nova localização.
      */
+    @Override
     public void setLocation(Location location) {
         this.location = location;
     }
 
     /**
      * Define a localização do animal.
-     * * @param row A coordenada vertical.
-     * * @param col A coordenada horizontal.
+     *
+     * @param row A coordenada vertical.
+     * @param col A coordenada horizontal.
      */
     public void setLocation(int row, int col) {
         this.location = new Location(row, col);
@@ -155,6 +242,7 @@ public abstract class Animal {
     /**
      * @return A localização atual do animal.
      */
+    @Override
     public Location getLocation() {
         return location;
     }

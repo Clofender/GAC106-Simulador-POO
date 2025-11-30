@@ -8,7 +8,7 @@
  */
 public class Counter {
     // Um nome para este tipo de participante da simulação
-    private String name;
+    private final String name;
     // Quantos deste tipo existem na simulação.
     private int count;
 
