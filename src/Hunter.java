@@ -26,7 +26,7 @@ public class Hunter implements Actor {
     // ---------------------------------------------------------
     // Métodos da interface Actor
     // ---------------------------------------------------------
-    public void act(Field currentField, Field updatedField, List<Animal> newAnimals, WeatherSystem weather) {
+    public void act(Field currentField, Field updatedField, List<Actor> newActors, WeatherSystem weather) {
         if(!alive) return;
 
     // INVERNO → não caça
@@ -67,9 +67,6 @@ public class Hunter implements Actor {
         return location;
     }
 
-    // ---------------------------------------------------------
-    // Métodos específicos de Hunter
-    // ---------------------------------------------------------
     public int getKills() {
         return kills;
     }
@@ -87,7 +84,7 @@ public class Hunter implements Actor {
             Location loc = adjacentLocs.next();
             Object obj = currentField.getObjectAt(loc);
 
-            if(obj instanceof Actor prey && !(prey instanceof Hunter)) {
+            if(obj instanceof Actor prey && !(prey instanceof Animal)) {
 
                 // matar a presa
                 prey.setLocation(null); 

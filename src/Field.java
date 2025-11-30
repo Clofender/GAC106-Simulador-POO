@@ -293,4 +293,12 @@ public class Field {
     public int getWidth() {
         return width;
     }
+ /* 
+    public void placehunter(Hunter hunter, int row, int col) {
+        placehunter(hunter, new Location(row, col));
+    }
+    public void placehunter(Hunter hunter, Location location) {
+        field[location.getRow()][location.getCol()] = hunter;
+    }
+    */
 }

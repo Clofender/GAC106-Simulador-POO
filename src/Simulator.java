@@ -18,6 +18,9 @@ public class Simulator {
     private static final int DEFAULT_DEPTH = 50;
     private static final double FOX_CREATION_PROBABILITY = 0.02;
     private static final double RABBIT_CREATION_PROBABILITY = 0.08;
+    private static final double HUNTER_CREATION_PROBABILITY = 0.005;
+    private static final double BUFFALO_CREATION_PROBABILITY = 0.01;
+    private static final double LION_CREATION_PROBABILITY = 0.005;
 
     // --- Campos de Instância ---
 
@@ -25,6 +28,9 @@ public class Simulator {
     private List<Animal> animals;
     // A lista de animais recém-nascidos
     private List<Animal> newAnimals;
+
+    //caçador
+    private Actor hunter;
 
     // O estado atual do campo.
     private Field field;
@@ -41,8 +47,8 @@ public class Simulator {
     /**
      * Constrói um campo de simulação com tamanho padrão.
      */
-    public Simulator() {
-        this(DEFAULT_DEPTH, DEFAULT_WIDTH);
+    public Simulator(int mapa) {
+        this(DEFAULT_DEPTH, DEFAULT_WIDTH, mapa);
     }
 
     /**
@@ -50,7 +56,7 @@ public class Simulator {
      * * @param depth Profundidade do campo.
      * * @param width Largura do campo.
      */
-    public Simulator(int depth, int width) {
+    public Simulator(int depth, int width, int mapa) {
         if (width <= 0 || depth <= 0) {
             System.out.println("As dimensões devem ser maiores que zero.");
             System.out.println("Usando valores padrão.");
@@ -58,8 +64,16 @@ public class Simulator {
             width = DEFAULT_WIDTH;
         }
         // Carregar mapa antes de criar os campos
-        TerrainType[][] terrainMap = MapLoader.loadMap("Mapas/mapa2.txt", width, depth);
+            TerrainType[][] terrainMap;
+        if(mapa == 1){
+            terrainMap = MapLoader.loadMap("Src/Mapas/mapa1.txt", width, depth);
+        }
+        else{
+            terrainMap = MapLoader.loadMap("Src/Mapas/mapa2.txt", width, depth);
+        }
         
+
+
         animals = new ArrayList<Animal>();
         newAnimals = new ArrayList<Animal>();
         field = new Field(depth, width, terrainMap);
@@ -72,6 +86,8 @@ public class Simulator {
         view = new SimulatorView(depth, width);
         view.setColor(Fox.class, Color.RED);    // Raposa vermelha
         view.setColor(Rabbit.class, Color.PINK); // Coelho rosa
+        view.setColor(Hunter.class, Color.BLUE); // Caçador azul
+    
 
         // Configura um ponto de partida válido.
         reset();
@@ -81,14 +97,14 @@ public class Simulator {
      * Executa a simulação por um longo período (500 passos).
      */
     public void runLongSimulation() {
-        simulate(500);
+        simulate(500,1);
     }
 
     /**
      * Executa a simulação pelo número de passos dado.
      * Para antes se a simulação não for mais viável.
      */
-    public void simulate(int numSteps) {
+    public void simulate(int numSteps , int mapa) {
         for (int step = 1; step <= numSteps && view.isViable(field); step++) {
             simulateOneStep();
         }
@@ -174,12 +190,30 @@ public class Simulator {
                         rabbit.setLocation(row, col);
                         field.place(rabbit, row, col);
                     }
+                   /*  else if (rand.nextDouble() <= HUNTER_CREATION_PROBABILITY) {
+                        Hunter hunter = new Hunter(location);
+                        hunter.setLocation(location);
+                        field.placehunter(hunter, row, col);
+                       
+                    }
+                         */
+                    else if (rand.nextDouble() <= BUFFALO_CREATION_PROBABILITY) {
+                        Buffalo buffalo = new Buffalo(true);
+                        animals.add(buffalo);
+                        buffalo.setLocation(row, col);
+                        field.place(buffalo, row, col);
+                    }
+                    else if (rand.nextDouble() <= LION_CREATION_PROBABILITY) {
+                        Lion lion = new Lion(true);
+                        animals.add(lion);
+                        lion.setLocation(row, col);
+                        field.place(lion, row, col);
                 }
                 // else deixa o local vazio (para terrenos intransitáveis)
             }
         }
-        
-        Collections.shuffle(animals);
+    }
+        Collections.shuffle(animals); // Mistura a lista de animais para diversidade
     }
 
     /**

@@ -10,7 +10,7 @@ public interface Actor
      * @param updatedField O campo onde o ator deve ser atualizado.
      * @param newActors Lista onde novos atores (nascimentos, criações, etc.) devem ser adicionados.
      */
-    void act(Field currentField, Field updatedField, List<Animal> newAnimals,WeatherSystem weather);
+    void act(Field currentField, Field updatedField, List<Actor> newActors,WeatherSystem weather);
 
     /**
      * @return true se o ator ainda está vivo.
