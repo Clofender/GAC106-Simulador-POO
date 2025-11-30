@@ -2,19 +2,19 @@
  * Fornece um contador para um participante na simulação.
  * Isso inclui uma string de identificação e uma contagem de quantos
  * participantes deste tipo existem atualmente na simulação.
- * * @author David J. Barnes and Michael Kolling
  * 
+ * @author David J. Barnes and Michael Kolling
  * @version 2025
  */
 public class Counter {
     // Um nome para este tipo de participante da simulação
-    private final String name;
+    private String name;
     // Quantos deste tipo existem na simulação.
     private int count;
 
     /**
      * Fornece um nome para um dos tipos de simulação.
-     * * @param name Um nome, ex. "Raposa".
+     * @param name Um nome, ex. "Raposa".
      */
     public Counter(String name) {
         this.name = name;

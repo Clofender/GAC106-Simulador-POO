@@ -25,7 +25,7 @@ public abstract class Herbivore extends Animal {
      * @return A próxima localização, ou null se não puder se mover.
      */
     @Override
-    protected Location findNextLocation(Field currentField, Field updatedField) {
+    public Location findNextLocation(Field currentField, Field updatedField) {
         return updatedField.freeAdjacentLocation(getLocation());
     }
 }

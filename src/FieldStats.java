@@ -13,7 +13,7 @@ import java.util.Iterator;
 public class FieldStats {
     
     // Contadores para cada tipo de entidade (raposa, coelho, etc.) na simulação.
-    private final HashMap<Class<?>, Counter> counters;
+    private HashMap<Class<?>, Counter> counters;
     
     // Contador de caças realizadas pelo Hunter
     private int hunterKills;
@@ -25,8 +25,6 @@ public class FieldStats {
      * Constrói um objeto de estatísticas do campo.
      */
     public FieldStats() {
-        // Configura uma coleção para contadores de cada tipo de animal que
-        // podemos encontrar
         counters = new HashMap<>();
         hunterKills = 0;
         countsValid = true;
@@ -54,7 +52,6 @@ public class FieldStats {
             buffer.append(' ');
         }
         
-        // Contar caçadores vivos no campo
         int hunterCount = 0;
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
@@ -65,7 +62,6 @@ public class FieldStats {
             }
         }
         
-        // Adicionar contagem de caçadores na população
         if (hunterCount > 0) {
             buffer.append("Caçadores: ").append(hunterCount).append(" ");
         }
@@ -99,7 +95,6 @@ public class FieldStats {
     /**
      * Invalida o conjunto atual de estatísticas; reseta todas
      * as contagens para zero.
-     * NOTA: NÃO reseta o contador de caças (hunterKills) - ele é acumulativo.
      */
     public void reset() {
         countsValid = false;
@@ -108,8 +103,6 @@ public class FieldStats {
             Counter cnt = counters.get(keys.next());
             cnt.reset();
         }
-        // NÃO resetar hunterKills - ele deve ser acumulativo durante toda a simulação
-        // resetHunterKills();
     }
 
     /**
@@ -120,7 +113,6 @@ public class FieldStats {
     public void incrementCount(Class<?> animalClass) {
         Counter cnt = counters.get(animalClass);
         if (cnt == null) {
-            // ainda não temos um contador para esta espécie - crie um
             cnt = new Counter(animalClass.getName());
             counters.put(animalClass, cnt);
         }
@@ -135,14 +127,12 @@ public class FieldStats {
     }
 
     /**
-     * Determina se a simulação ainda é viável.
-     * Ou seja, se deve continuar a ser executada.
+     * Determina se a simulação deve continuar a ser executada.
      *
      * @param field O campo da simulação.
      * @return true Se houver mais de uma espécie viva ou se houver caçadores ativos.
      */
     public boolean isViable(Field field) {
-        // Verificar se há caçadores vivos (se houver, simulação continua)
         boolean hasHunters = false;
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
@@ -155,12 +145,10 @@ public class FieldStats {
             if (hasHunters) break;
         }
         
-        // Se há caçadores, simulação continua
         if (hasHunters) {
             return true;
         }
         
-        // Quantas contagens são diferentes de zero.
         int nonZero = 0;
         if (!countsValid) {
             generateCounts(field);
@@ -179,11 +167,6 @@ public class FieldStats {
 
     /**
      * Gera contagens do número de animais.
-     * Elas não são mantidas atualizadas conforme animais
-     * são colocados no campo, mas apenas quando uma solicitação
-     * é feita pela informação.
-     *
-     * @param field O campo da simulação.
      */
     private void generateCounts(Field field) {
         reset();

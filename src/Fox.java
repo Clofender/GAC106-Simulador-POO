@@ -10,9 +10,9 @@ public class Fox extends Predator {
     // --- Constantes Estáticas ---
     private static final int BREEDING_AGE = 10;
     private static final int MAX_AGE = 90;
-    private static final double BREEDING_PROBABILITY = 0.03;
-    private static final int MAX_LITTER_SIZE = 4;
-    private static final int FOOD_VALUE = 6;
+    private static final double BREEDING_PROBABILITY = 0.022;
+    private static final int MAX_LITTER_SIZE = 9;
+    private static final int FOOD_VALUE = 12;
 
     /**
      * Cria uma raposa. Pode ser recém-nascida (idade zero e sem fome)
@@ -33,7 +33,7 @@ public class Fox extends Predator {
      * @return A raposa jovem criada.
      */
     @Override
-    protected Animal createYoung(boolean randomAge, Field field, Location loc) {
+    public Animal createYoung(boolean randomAge, Field field, Location loc) {
         Fox young = new Fox(randomAge);
         young.setLocation(loc);
         field.place(young, loc);
@@ -48,7 +48,7 @@ public class Fox extends Predator {
      * @return true se pode comer o animal, false caso contrário.
      */
     @Override
-    protected boolean canEat(Object animal) {
+    public boolean canEat(Object animal) {
         return animal instanceof Rabbit;
     }
 
@@ -69,7 +69,7 @@ public class Fox extends Predator {
      */
     @Override
     public int getMaxFoodValue() {
-        return 12; // Reduzido de 15 (morre de fome mais rápido se não encontrar coelhos)
+        return 12;
     }
 
     /**
@@ -78,7 +78,7 @@ public class Fox extends Predator {
      * @return A idade máxima da raposa.
      */
     @Override
-    protected int getMaxAge() {
+    public int getMaxAge() {
         return MAX_AGE;
     }
 
@@ -88,7 +88,7 @@ public class Fox extends Predator {
      * @return A idade de procriação da raposa.
      */
     @Override
-    protected int getBreedingAge() {
+    public int getBreedingAge() {
         return BREEDING_AGE;
     }
 
@@ -98,7 +98,7 @@ public class Fox extends Predator {
      * @return A probabilidade de procriação (0.0 a 1.0).
      */
     @Override
-    protected double getBreedingProbability() {
+    public double getBreedingProbability() {
         return BREEDING_PROBABILITY;
     }
 
@@ -108,7 +108,7 @@ public class Fox extends Predator {
      * @return O número máximo de filhotes por procriação.
      */
     @Override
-    protected int getMaxLitterSize() {
+    public int getMaxLitterSize() {
         return MAX_LITTER_SIZE;
     }
 }

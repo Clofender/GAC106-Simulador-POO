@@ -19,8 +19,8 @@ public class Simulator {
     private static final int DEFAULT_DEPTH = 50;
     private static final double FOX_CREATION_PROBABILITY = 0.04;
     private static final double RABBIT_CREATION_PROBABILITY = 0.12;
-    private static final double BUFFALO_CREATION_PROBABILITY = 0.010;
-    private static final double LION_CREATION_PROBABILITY = 0.003;
+    private static final double BUFFALO_CREATION_PROBABILITY = 0.008;
+    private static final double LION_CREATION_PROBABILITY = 0.010;
 
     // Campos de Instância
     private java.util.List<Animal> animals;
@@ -32,15 +32,18 @@ public class Simulator {
     private SimulatorView view;
     private WeatherSystem weatherSystem;
     private FieldStats stats;
+    private int maxSteps;
+    private boolean simulationRunning;
 
     /**
      * Constrói um campo de simulação com tamanho padrão.
      *
-     * @param mapa Número do mapa a ser carregado.
+     * @param mapFileName Nome do arquivo de mapa a ser carregado.
      * @param hunterCount Número de caçadores a serem criados.
+     * @param useGrassOnly Se true, usa apenas terreno de grama.
      */
-    public Simulator(int mapa, int hunterCount) {
-        this(DEFAULT_DEPTH, DEFAULT_WIDTH, mapa, hunterCount);
+    public Simulator(String mapFileName, int hunterCount, boolean useGrassOnly) {
+        this(DEFAULT_DEPTH, DEFAULT_WIDTH, mapFileName, hunterCount, useGrassOnly);
     }
 
     /**
@@ -48,10 +51,11 @@ public class Simulator {
      *
      * @param depth Profundidade do campo.
      * @param width Largura do campo.
-     * @param mapa Número do mapa a ser carregado.
+     * @param mapFileName Nome do arquivo de mapa a ser carregado.
      * @param hunterCount Número de caçadores a serem criados.
+     * @param useGrassOnly Se true, usa apenas terreno de grama.
      */
-    public Simulator(int depth, int width, int mapa, int hunterCount) {
+    public Simulator(int depth, int width, String mapFileName, int hunterCount, boolean useGrassOnly) {
         if (width <= 0 || depth <= 0) {
             System.out.println("As dimensões devem ser maiores que zero.");
             System.out.println("Usando valores padrão.");
@@ -59,46 +63,64 @@ public class Simulator {
             width = DEFAULT_WIDTH;
         }
 
-        // Carregar mapa antes de criar os campos
+        // Carregar mapa
         TerrainType[][] terrainMap;
-        if (mapa == 1) {
-            terrainMap = MapLoader.loadMap("Mapas/mapa1.txt", width, depth);
+        if (useGrassOnly || "GRASS_ONLY".equals(mapFileName)) {
+            // Criar mapa só de grama
+            terrainMap = createGrassOnlyMap(width, depth);
+            System.out.println("Usando mapa somente de grama (" + width + "x" + depth + ")");
         } else {
-            terrainMap = MapLoader.loadMap("Mapas/mapa2.txt", width, depth);
+            // Carregar mapa do arquivo
+            String mapPath = "Mapas/" + mapFileName;
+            terrainMap = MapLoader.loadMap(mapPath, width, depth);
+            System.out.println("Mapa carregado: " + mapFileName + " (" + width + "x" + depth + ")");
         }
 
         animals = new ArrayList<Animal>();
         newAnimals = new ArrayList<Animal>();
-        hunters = new ArrayList<Hunter>(); // Lista de caçadores INICIALMENTE VAZIA
+        hunters = new ArrayList<Hunter>();
         field = new Field(depth, width, terrainMap);
         updatedField = new Field(depth, width, terrainMap);
         
-        // Inicializa o sistema climático
         weatherSystem = new WeatherSystem();
-        
-        // Inicializa estatísticas
         stats = new FieldStats();
-        
-        // Configura o sistema de clima para os animais
         Animal.setWeatherSystem(weatherSystem);
         
-        // Cria a visão
         view = new SimulatorView(depth, width);
-        view.setColor(Fox.class, Color.RED);        // Raposa vermelha
-        view.setColor(Rabbit.class, Color.PINK);    // Coelho rosa
-        view.setColor(Hunter.class, Color.BLUE);    // Caçador azul
-        view.setColor(Buffalo.class, new Color(139, 69, 19)); // Búfalo marrom
-        view.setColor(Lion.class, Color.YELLOW);    // Leão amarelo
+        view.setColor(Fox.class, Color.RED);
+        view.setColor(Rabbit.class, Color.PINK);
+        view.setColor(Hunter.class, Color.BLUE);
+        view.setColor(Buffalo.class, new Color(139, 69, 19));
+        view.setColor(Lion.class, Color.YELLOW);
 
-        // Configura um ponto de partida válido.
+        maxSteps = 500;
+        simulationRunning = true;
+        
         reset(hunterCount);
+    }
+
+    /**
+     * Cria um mapa composto apenas por grama.
+     *
+     * @param width Largura do mapa.
+     * @param depth Profundidade do mapa.
+     * @return Matriz com todos os terrenos como grama.
+     */
+    private TerrainType[][] createGrassOnlyMap(int width, int depth) {
+        TerrainType[][] grassMap = new TerrainType[depth][width];
+        for (int row = 0; row < depth; row++) {
+            for (int col = 0; col < width; col++) {
+                grassMap[row][col] = TerrainType.GRASS;
+            }
+        }
+        return grassMap;
     }
 
     /**
      * Executa a simulação por um longo período (500 passos).
      */
     public void runLongSimulation() {
-        simulate(500);
+        simulate(maxSteps);
     }
 
     /**
@@ -108,67 +130,59 @@ public class Simulator {
      * @param numSteps Número de passos a simular.
      */
     public void simulate(int numSteps) {
-        for (int i = 0; i < numSteps && view.isViable(field); i++) {
+        simulationRunning = true;
+        for (int i = 0; i < numSteps && simulationRunning && view.isViable(field); i++) {
             simulateOneStep();
             
-            // Adicionar delay para permitir atualização da interface
             try {
-                Thread.sleep(100); // 100ms de delay entre steps
+                Thread.sleep(100);
             } catch (InterruptedException e) {
-                // Se interrompido, parar a simulação
                 break;
             }
         }
+        
+        // Marca que a simulação terminou
+        simulationRunning = false;
     }
 
     /**
      * Executa um único passo da simulação.
-     * Itera por todo o campo atualizando o estado de cada animal e caçador.
      */
     public void simulateOneStep() {
+        if (!simulationRunning) return;
+        
         step++;
         newAnimals.clear();
         
-        // Avança o tempo no sistema climático
         weatherSystem.advanceTime();
-        
-        // Atualizar atividade do caçador baseado na estação
         updateHunterActivity();
         
-        // IMPORTANTE: Caçadores agem ANTES dos animais se moverem
-        // Isso permite que os caçadores encontrem os animais no campo atual
         for (Iterator<Hunter> iter = hunters.iterator(); iter.hasNext();) {
             Hunter hunter = iter.next();
             if (hunter.isAlive()) {
                 java.util.List<Actor> newActors = new ArrayList<>();
                 hunter.act(field, updatedField, newActors);
             } else {
-                iter.remove(); // Remove caçadores mortos
+                iter.remove();
             }
         }
         
-        // Permite que todos os animais ajam (depois dos caçadores).
         for (Iterator<Animal> iter = animals.iterator(); iter.hasNext();) {
             Animal animal = iter.next();
             if (animal.isAlive()) {
-                // Usar o método de compatibilidade com List<Animal> (nome alterado)
                 animal.actWithAnimals(field, updatedField, newAnimals);
             } else {
-                iter.remove(); // Remove animais mortos da coleção
+                iter.remove();
             }
         }
 
-        // Adiciona animais recém-nascidos à lista principal
         animals.addAll(newAnimals);
 
-        // Troca os campos no final do passo.
         Field temp = field;
         field = updatedField;
         updatedField = temp;
         updatedField.clear();
 
-        // Exibe o novo campo na tela, passando a estação atual
-        // Usar invokeLater para atualizar na thread do Swing
         final int currentStep = step;
         final Field currentField = field;
         final Season currentSeason = weatherSystem.getCurrentSeason();
@@ -185,7 +199,6 @@ public class Simulator {
 
     /**
      * Atualiza a atividade dos caçadores baseado na estação atual.
-     * Caçadores não caçam durante o inverno.
      */
     private void updateHunterActivity() {
         boolean active = weatherSystem.getCurrentSeason() != Season.WINTER;
@@ -202,30 +215,24 @@ public class Simulator {
     public void reset(int hunterCount) {
         step = 0;
         animals.clear();
-        hunters.clear(); //Limpa a lista de caçadores
+        hunters.clear();
         field.clear();
         updatedField.clear();
         stats.reset();
         
-        // Reseta o clima
         weatherSystem = new WeatherSystem();
         Animal.setWeatherSystem(weatherSystem);
         
-        populate(field, hunterCount); // Popula animais E caçadores
+        populate(field, hunterCount);
         
-        // Mostra o estado inicial na visão.
         view.showStatus(step, field, weatherSystem.getCurrentSeason(), stats, hunters);
     }
 
     /**
      * Popula o campo com animais e caçadores.
-     * Animais só são colocados em terrenos transitáveis.
-     *
-     * @param field O campo a ser populado.
-     * @param hunterCount Número de caçadores a criar.
      */
     private void populate(Field field, int hunterCount) {
-        Random rand = new Random();
+        Random rand = RandomGenerator.getRandom();
         field.clear();
 
         for (int row = 0; row < field.getDepth(); row++) {
@@ -233,7 +240,6 @@ public class Simulator {
                 Location location = new Location(row, col);
                 TerrainType terrain = field.getTerrainAt(location);
 
-                // Só coloca animais em terrenos transitáveis
                 if (terrain.isTraversable()) {
                     if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
                         Fox fox = new Fox(true);
@@ -260,28 +266,44 @@ public class Simulator {
             }
         }
 
-        // Adicionar caçadores
         for (int i = 0; i < hunterCount; i++) {
             Location home = findValidLocationForHunter(field);
             Hunter hunter = new Hunter(home, stats);
-            hunters.add(hunter); // ADICIONA À LISTA hunters
+            hunters.add(hunter);
             field.placeHunter(hunter, home);
         }
 
-        Collections.shuffle(animals); // Mistura a lista de animais para diversidade
+        Collections.shuffle(animals);
+        
+        // Log da população inicial
+        System.out.println("População inicial:");
+        System.out.println("- Coelhos: " + countAnimals(Rabbit.class));
+        System.out.println("- Raposas: " + countAnimals(Fox.class));
+        System.out.println("- Búfalos: " + countAnimals(Buffalo.class));
+        System.out.println("- Leões: " + countAnimals(Lion.class));
+        System.out.println("- Caçadores: " + hunters.size());
+    }
+
+    /**
+     * Conta o número de animais de uma classe específica.
+     */
+    private int countAnimals(Class<?> animalClass) {
+        int count = 0;
+        for (Animal animal : animals) {
+            if (animal.getClass().equals(animalClass) && animal.isAlive()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**
      * Encontra uma localização válida para um caçador.
-     * Caçadores só podem ser colocados em grama.
-     *
-     * @param field O campo onde procurar.
-     * @return Uma localização válida para o caçador.
      */
     private Location findValidLocationForHunter(Field field) {
-        Random rand = new Random();
+        Random rand = RandomGenerator.getRandom();
         int attempts = 0;
-        while (attempts < 1000) { // Limite de tentativas para evitar loop infinito
+        while (attempts < 1000) {
             int row = rand.nextInt(field.getDepth());
             int col = rand.nextInt(field.getWidth());
             Location loc = new Location(row, col);
@@ -291,7 +313,7 @@ public class Simulator {
             }
             attempts++;
         }
-        // Fallback: retorna a primeira localização de grama encontrada
+        
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
                 Location loc = new Location(row, col);
@@ -301,7 +323,7 @@ public class Simulator {
                 }
             }
         }
-        // Último recurso: retorna (0,0)
+        
         return new Location(0, 0);
     }
 
@@ -321,5 +343,84 @@ public class Simulator {
      */
     public FieldStats getStats() {
         return stats;
+    }
+
+    /**
+     * Retorna a view do simulador para poder fechá-la.
+     *
+     * @return A view do simulador.
+     */
+    public SimulatorView getView() {
+        return view;
+    }
+
+    /**
+     * Verifica se a simulação está rodando.
+     *
+     * @return true se a simulação está em execução.
+     */
+    public boolean isSimulationRunning() {
+        return simulationRunning;
+    }
+
+    /**
+     * Para a simulação.
+     */
+    public void stopSimulation() {
+        simulationRunning = false;
+    }
+
+    /**
+     * Retorna o número atual de passos da simulação.
+     *
+     * @return O número do passo atual.
+     */
+    public int getStep() {
+        return step;
+    }
+
+    /**
+     * Retorna o número máximo de passos da simulação.
+     *
+     * @return O número máximo de passos.
+     */
+    public int getMaxSteps() {
+        return maxSteps;
+    }
+
+    /**
+     * Define o número máximo de passos da simulação.
+     *
+     * @param maxSteps O número máximo de passos.
+     */
+    public void setMaxSteps(int maxSteps) {
+        this.maxSteps = maxSteps;
+    }
+
+    /**
+     * Retorna o campo atual da simulação.
+     *
+     * @return O campo atual.
+     */
+    public Field getField() {
+        return field;
+    }
+
+    /**
+     * Retorna a lista de animais vivos.
+     *
+     * @return Lista de animais vivos.
+     */
+    public java.util.List<Animal> getAnimals() {
+        return new ArrayList<>(animals);
+    }
+
+    /**
+     * Retorna a lista de caçadores vivos.
+     *
+     * @return Lista de caçadores vivos.
+     */
+    public java.util.List<Hunter> getHunters() {
+        return new ArrayList<>(hunters);
     }
 }

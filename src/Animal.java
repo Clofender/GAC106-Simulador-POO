@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public abstract class Animal implements Actor {
     
     // Um gerador de números aleatórios compartilhado.
-    protected static final Random rand = new Random();
+    private static final Random rand = RandomGenerator.getRandom();
     
     // A idade do animal.
     private int age;
@@ -25,7 +25,7 @@ public abstract class Animal implements Actor {
     private Location location;
     
     // Referência ao sistema de clima (para efeitos sazonais)
-    protected static WeatherSystem weatherSystem;
+    private static WeatherSystem weatherSystem;
 
     /**
      * Cria um novo animal.
@@ -60,14 +60,11 @@ public abstract class Animal implements Actor {
      */
     @Override
     public void act(Field currentField, Field updatedField, java.util.List<Actor> newActors) {
-        // Executar ação principal do animal
         incrementAge();
         if (isAlive()) {
-            // Converter List<Actor> para List<Animal> para giveBirth
             java.util.List<Animal> newAnimals = new ArrayList<>();
             giveBirth(newAnimals, updatedField);
             
-            // Adicionar os novos animais de volta à lista de atores
             for (Animal animal : newAnimals) {
                 newActors.add(animal);
             }
@@ -77,7 +74,7 @@ public abstract class Animal implements Actor {
                 setLocation(newLocation);
                 updatedField.place(this, newLocation);
             } else {
-                setDead(); // Superlotação
+                setDead();
             }
         }
     }
@@ -91,11 +88,9 @@ public abstract class Animal implements Actor {
      * @param newAnimals Lista para adicionar novos animais.
      */
     public void actWithAnimals(Field currentField, Field updatedField, java.util.List<Animal> newAnimals) {
-        // Converter para List<Actor> e chamar o novo método
         java.util.List<Actor> newActors = new ArrayList<>();
         act(currentField, updatedField, newActors);
         
-        // Atualizar a lista original com quaisquer novos animais
         for (Actor actor : newActors) {
             if (actor instanceof Animal) {
                 newAnimals.add((Animal) actor);
@@ -106,22 +101,22 @@ public abstract class Animal implements Actor {
     /**
      * @return A idade máxima para esta espécie.
      */
-    abstract protected int getMaxAge();
+    public abstract int getMaxAge();
 
     /**
      * @return A idade de procriação para esta espécie.
      */
-    abstract protected int getBreedingAge();
+    public abstract int getBreedingAge();
 
     /**
      * @return A probabilidade de procriação (0.0 a 1.0).
      */
-    abstract protected double getBreedingProbability();
+    public abstract double getBreedingProbability();
 
     /**
      * @return O tamanho máximo da ninhada.
      */
-    abstract protected int getMaxLitterSize();
+    public abstract int getMaxLitterSize();
 
     /**
      * Encontra a próxima localização para onde o animal deve se mover.
@@ -130,7 +125,7 @@ public abstract class Animal implements Actor {
      * @param updatedField O campo atualizado.
      * @return A próxima localização, ou null se não puder se mover.
      */
-    protected abstract Location findNextLocation(Field currentField, Field updatedField);
+    public abstract Location findNextLocation(Field currentField, Field updatedField);
 
     /**
      * Cria um novo animal jovem.
@@ -140,7 +135,7 @@ public abstract class Animal implements Actor {
      * @param loc A localização do jovem.
      * @return O animal jovem criado.
      */
-    protected abstract Animal createYoung(boolean randomAge, Field field, Location loc);
+    public abstract Animal createYoung(boolean randomAge, Field field, Location loc);
 
     /**
      * Lógica de nascimento - cria novos animais através de reprodução.
@@ -148,7 +143,7 @@ public abstract class Animal implements Actor {
      * @param newAnimals Lista para adicionar os novos animais.
      * @param field O campo onde os novos animais serão colocados.
      */
-    protected void giveBirth(java.util.List<Animal> newAnimals, Field field) {
+    private void giveBirth(java.util.List<Animal> newAnimals, Field field) {
         int births = breed();
         for (int b = 0; b < births; b++) {
             Location loc = field.freeAdjacentLocation(getLocation());
@@ -164,7 +159,7 @@ public abstract class Animal implements Actor {
     /**
      * Aumenta a idade. Isso pode resultar na morte do animal.
      */
-    protected void incrementAge() {
+    private void incrementAge() {
         age++;
         if (age > getMaxAge()) {
             setDead();
@@ -177,11 +172,10 @@ public abstract class Animal implements Actor {
      *
      * @return O número de nascimentos (pode ser zero).
      */
-    protected int breed() {
+    private int breed() {
         int births = 0;
         double probability = getBreedingProbability();
         
-        // Aplicar efeito sazonal se disponível
         if (weatherSystem != null) {
             Season currentSeason = weatherSystem.getCurrentSeason();
             probability *= currentSeason.getBreedingFactor();
@@ -205,7 +199,7 @@ public abstract class Animal implements Actor {
     /**
      * Marca o animal como morto (por exemplo, por velhice ou fome).
      */
-    protected void setDead() {
+    public void setDead() {
         alive = false;
     }
 
@@ -214,7 +208,6 @@ public abstract class Animal implements Actor {
      *
      * @return True se o animal está vivo.
      */
-    @Override
     public boolean isAlive() {
         return alive;
     }
@@ -224,7 +217,6 @@ public abstract class Animal implements Actor {
      *
      * @param location A nova localização.
      */
-    @Override
     public void setLocation(Location location) {
         this.location = location;
     }
@@ -242,7 +234,6 @@ public abstract class Animal implements Actor {
     /**
      * @return A localização atual do animal.
      */
-    @Override
     public Location getLocation() {
         return location;
     }

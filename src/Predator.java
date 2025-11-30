@@ -20,10 +20,9 @@ public abstract class Predator extends Animal {
     public Predator(boolean randomAge) {
         super(randomAge);
         if (randomAge) {
-            // Começa com comida aleatória se idade for aleatória
-            foodLevel = rand.nextInt(getMaxFoodValue());
+            foodLevel = RandomGenerator.nextInt(getMaxFoodValue());
         } else {
-            foodLevel = getMaxFoodValue(); // Estômago cheio ao nascer/iniciar
+            foodLevel = getMaxFoodValue();
         }
     }
 
@@ -36,16 +35,14 @@ public abstract class Predator extends Animal {
      * @return A próxima localização, ou null se não puder se mover.
      */
     @Override
-    protected Location findNextLocation(Field currentField, Field updatedField) {
+    public Location findNextLocation(Field currentField, Field updatedField) {
         incrementHunger();
         
-        // Primeiro tenta encontrar comida
         Location foodLocation = findFood(currentField, getLocation());
         if (foodLocation != null) {
             return foodLocation;
         }
         
-        // Se não encontrou comida, move aleatoriamente
         return updatedField.freeAdjacentLocation(getLocation());
     }
 
@@ -67,11 +64,9 @@ public abstract class Predator extends Animal {
                 Animal prey = (Animal) object;
                 
                 if(prey.isAlive() && canEat(prey)) { 
-                    // Come a presa e ganha energia
                     prey.setDead();
                     this.foodLevel += prey.getFoodValue();
                     
-                    // Não deixa a energia passar do máximo
                     if (this.foodLevel > getMaxFoodValue()) {
                         this.foodLevel = getMaxFoodValue();
                     }
@@ -85,7 +80,7 @@ public abstract class Predator extends Animal {
     /**
      * Aumenta a fome do predador. Pode resultar em morte por fome.
      */
-    public void incrementHunger() {
+    private void incrementHunger() {
         foodLevel--;
         if (foodLevel <= 0) {
             setDead();
@@ -105,5 +100,5 @@ public abstract class Predator extends Animal {
      * @param animal O animal a verificar.
      * @return true se pode comer o animal, false caso contrário.
      */
-    protected abstract boolean canEat(Object animal);
+    public abstract boolean canEat(Object animal);
 }

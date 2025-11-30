@@ -8,11 +8,11 @@
  */
 public class Lion extends Predator {
     // --- Constantes Estáticas ---
-    private static final int BREEDING_AGE = 19;
-    private static final int MAX_AGE = 20;
-    private static final double BREEDING_PROBABILITY = 0.0001;
-    private static final int MAX_LITTER_SIZE = 1;
-    private static final int FOOD_VALUE = 3;
+    private static final int BREEDING_AGE = 20;
+    private static final int MAX_AGE = 100;
+    private static final double BREEDING_PROBABILITY = 0.01;
+    private static final int MAX_LITTER_SIZE = 5;
+    private static final int FOOD_VALUE = 16;
 
     /**
      * Cria um novo leão.
@@ -32,7 +32,7 @@ public class Lion extends Predator {
      * @return O leão jovem criado.
      */
     @Override
-    protected Animal createYoung(boolean randomAge, Field field, Location loc) {
+    public Animal createYoung(boolean randomAge, Field field, Location loc) {
         Lion young = new Lion(randomAge);
         young.setLocation(loc);
         field.place(young, loc);
@@ -47,7 +47,7 @@ public class Lion extends Predator {
      * @return true se pode comer o animal, false caso contrário.
      */
     @Override
-    protected boolean canEat(Object animal) {
+    public boolean canEat(Object animal) {
         return (animal instanceof Rabbit) ||
                (animal instanceof Buffalo) ||
                (animal instanceof Fox);
@@ -60,7 +60,7 @@ public class Lion extends Predator {
      */
     @Override
     public int getMaxFoodValue() {
-        return 25; // Reduzido de 40 para 25 (morre de fome mais rápido)
+        return 25;
     }
 
     /**
@@ -86,7 +86,7 @@ public class Lion extends Predator {
      * @return A idade máxima do leão.
      */
     @Override
-    protected int getMaxAge() {
+    public int getMaxAge() {
         return MAX_AGE;
     }
 
@@ -96,7 +96,7 @@ public class Lion extends Predator {
      * @return A idade de procriação do leão.
      */
     @Override
-    protected int getBreedingAge() {
+    public int getBreedingAge() {
         return BREEDING_AGE;
     }
 
@@ -106,7 +106,7 @@ public class Lion extends Predator {
      * @return A probabilidade de procriação (0.0 a 1.0).
      */
     @Override
-    protected double getBreedingProbability() {
+    public double getBreedingProbability() {
         return BREEDING_PROBABILITY;
     }
 
@@ -116,7 +116,7 @@ public class Lion extends Predator {
      * @return O número máximo de filhotes por procriação.
      */
     @Override
-    protected int getMaxLitterSize() {
+    public int getMaxLitterSize() {
         return MAX_LITTER_SIZE;
     }
 }

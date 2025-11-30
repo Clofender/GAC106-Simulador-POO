@@ -31,6 +31,9 @@ public class Hunter implements Actor {
     
     // Flag para indicar se está voltando para casa após uma caça
     private boolean returningHome;
+    
+    // Contador de passos no inverno (para movimento mais lento)
+    private int winterStepCounter;
 
     /**
      * Cria um novo caçador.
@@ -46,6 +49,7 @@ public class Hunter implements Actor {
         this.active = true;
         this.stats = stats;
         this.returningHome = false;
+        this.winterStepCounter = 0;
     }
 
     /**
@@ -62,17 +66,31 @@ public class Hunter implements Actor {
 
         // Verificar se pode caçar (não caça no inverno)
         if (!active) {
-            // No inverno: voltar para casa 1 bloco por step
-            if (!location.equals(homeLocation)) {
-                moveTowardsHome(currentField, updatedField);
+            // No inverno: comportamento especial - fica em casa ou volta para casa
+            winterStepCounter++;
+            
+            // No inverno, move mais devagar (a cada 2 passos)
+            if (winterStepCounter % 2 == 0) {
+                if (!location.equals(homeLocation)) {
+                    // Tenta voltar para casa
+                    moveTowardsHome(currentField, updatedField);
+                } else {
+                    // Já está em casa, fica lá
+                    if (updatedField != null) {
+                        updatedField.placeHunter(this, homeLocation);
+                    }
+                }
             } else {
-                // Já está em casa, ficar lá
+                // Em passos ímpares, não se move no inverno
                 if (updatedField != null) {
-                    updatedField.placeHunter(this, homeLocation);
+                    updatedField.placeHunter(this, location);
                 }
             }
             return;
         }
+
+        // Fora do inverno: comportamento normal de caça
+        winterStepCounter = 0; // Reseta contador do inverno
 
         // Se está voltando para casa após uma caça
         if (returningHome) {
@@ -93,13 +111,12 @@ public class Hunter implements Actor {
 
     /**
      * Move o caçador 1 bloco em direção à casa.
-     * Não teleporta, move gradualmente 1 bloco por step.
      *
      * @param currentField O campo atual.
      * @param updatedField O campo atualizado para posicionamento.
      * @return true se chegou em casa, false se ainda está a caminho.
      */
-    public boolean moveTowardsHome(Field currentField, Field updatedField) {
+    private boolean moveTowardsHome(Field currentField, Field updatedField) {
         // Se já está em casa, não precisa mover
         if (location.equals(homeLocation)) {
             if (updatedField != null) {
@@ -132,12 +149,13 @@ public class Hunter implements Actor {
         
         Location moveLoc = new Location(moveRow, moveCol);
         if (currentField.canAnimalMoveTo(moveLoc) && 
-            currentField.getObjectAt(moveLoc) == null) {
+            (currentField.getObjectAt(moveLoc) == null || 
+             currentField.getObjectAt(moveLoc) == this)) {
             location = moveLoc;
             if (updatedField != null) {
                 updatedField.placeHunter(this, moveLoc);
             }
-            return location.equals(homeLocation); // Retorna true se chegou em casa
+            return location.equals(homeLocation);
         } else {
             // Se não pode mover na direção ideal, tentar adjacente livre
             Location newLoc = currentField.freeAdjacentLocation(location);
@@ -146,8 +164,13 @@ public class Hunter implements Actor {
                 if (updatedField != null) {
                     updatedField.placeHunter(this, newLoc);
                 }
+            } else {
+                // Se não pode se mover, ficar no lugar
+                if (updatedField != null) {
+                    updatedField.placeHunter(this, location);
+                }
             }
-            return false; // Ainda não chegou em casa
+            return false;
         }
     }
 
@@ -206,28 +229,23 @@ public class Hunter implements Actor {
      */
     public void setActive(boolean active) {
         this.active = active;
+        // Se foi desativado (inverno) e não está em casa, marcar para voltar
+        if (!active && !location.equals(homeLocation)) {
+            returningHome = true;
+        }
     }
 
     /**
-     * Lógica de caça: o caçador procura por um animal nas adjacências (1 bloco).
-     * Se encontrar, move até ele (1 bloco), mata, soma no contador e começa a voltar para casa.
-     * Se não encontrar, move aleatoriamente.
-     * O caçador anda por todo o mapa como os outros animais.
-     *
-     * @param currentField O campo atual para procurar presas.
-     * @param updatedField O campo atualizado para movimentação.
+     * Lógica de caça: o caçador procura por um animal nas adjacências.
      */
-    public void goHunting(Field currentField, Field updatedField) {
-        // Procurar animais nas adjacências (1 bloco de distância)
+    private void goHunting(Field currentField, Field updatedField) {
         Iterator<Location> adjacentLocs = currentField.adjacentLocations(location);
         
-        // Primeiro, verificar se há animais nas adjacências
         Location animalLocation = null;
         while (adjacentLocs.hasNext()) {
             Location loc = adjacentLocs.next();
             Object obj = currentField.getObjectAt(loc);
             
-            // Caçar qualquer animal vivo
             if (obj instanceof Animal) {
                 Animal prey = (Animal) obj;
                 if (prey.isAlive()) {
@@ -237,35 +255,28 @@ public class Hunter implements Actor {
             }
         }
         
-        // Se encontrou um animal, mover até ele (1 bloco) e matar
         if (animalLocation != null) {
-            // Mover para a localização do animal (1 bloco)
             location = animalLocation;
             
-            // Matar o animal
             Object obj = currentField.getObjectAt(animalLocation);
             if (obj instanceof Animal) {
                 Animal prey = (Animal) obj;
                 prey.setDead();
                 kills++;
                 
-                // Registrar nas estatísticas
                 if (stats != null) {
                     stats.incrementHunterKills();
                 }
             }
             
-            // Colocar no campo atualizado
             if (updatedField != null) {
                 updatedField.placeHunter(this, animalLocation);
             }
             
-            // Marcar que está voltando para casa
             returningHome = true;
             return;
         }
         
-        // Se não encontrou animais, mover aleatoriamente (1 bloco)
         Location newLoc = currentField.freeAdjacentLocation(location);
         if (newLoc != null && !newLoc.equals(location)) {
             location = newLoc;
@@ -273,7 +284,6 @@ public class Hunter implements Actor {
                 updatedField.placeHunter(this, newLoc);
             }
         } else {
-            // Se não pode se mover, ficar no lugar
             if (updatedField != null) {
                 updatedField.placeHunter(this, location);
             }

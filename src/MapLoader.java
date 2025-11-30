@@ -27,7 +27,6 @@ public class MapLoader {
             int row = 0;
             
             while ((line = reader.readLine()) != null && row < depth) {
-                // Remove espaços em branco e divide por espaços
                 line = line.trim();
                 String[] characteres = line.split("\\s+");
                 
@@ -51,11 +50,9 @@ public class MapLoader {
             
         } catch (IOException e) {
             System.err.println("Erro ao carregar mapa: " + e.getMessage());
-            // Fallback: criar mapa padrão de grama
             return createDefaultMap(width, depth);
         } catch (IllegalArgumentException e) {
             System.err.println("Erro no formato do mapa: " + e.getMessage());
-            // Fallback: criar mapa padrão de grama
             return createDefaultMap(width, depth);
         }
         
@@ -64,11 +61,6 @@ public class MapLoader {
     
     /**
      * Cria um mapa padrão composto apenas por grama.
-     * Usado como fallback quando o arquivo de mapa não pode ser carregado.
-     * 
-     * @param width Largura do mapa
-     * @param depth Profundidade do mapa
-     * @return Matriz com todos os terrenos como grama
      */
     private static TerrainType[][] createDefaultMap(int width, int depth) {
         TerrainType[][] defaultMap = new TerrainType[depth][width];

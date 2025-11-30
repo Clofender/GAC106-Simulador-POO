@@ -44,7 +44,6 @@ public class SimulatorView extends JFrame {
         colors = new HashMap<>();
         setTitle("Simulação Ecossistema - TP_Grupo08");
         
-        // Configurar componentes de texto
         stepLabel = new JLabel(STEP_PREFIX, JLabel.CENTER);
         population = new JLabel(POPULATION_PREFIX, JLabel.CENTER);
         seasonLabel = new JLabel(SEASON_PREFIX, JLabel.CENTER);
@@ -53,10 +52,8 @@ public class SimulatorView extends JFrame {
         setLocation(100, 50);
         fieldView = new FieldView(height, width);
         
-        // Configurar layout
         Container contents = getContentPane();
         
-        // Painel superior para informações de passo, estação e caçador
         JPanel topPanel = new JPanel(new GridLayout(3, 1));
         topPanel.add(stepLabel);
         topPanel.add(seasonLabel);
@@ -90,7 +87,6 @@ public class SimulatorView extends JFrame {
     private Color getColor(Class<?> animalClass) {
         Color col = colors.get(animalClass);
         if (col == null) {
-            // Nenhuma cor definida para esta classe
             return UNKNOWN_COLOR;
         } else {
             return col;
@@ -111,21 +107,16 @@ public class SimulatorView extends JFrame {
             setVisible(true);
         }
         
-        // Atualizar labels
         stepLabel.setText(STEP_PREFIX + step);
         seasonLabel.setText(SEASON_PREFIX + currentSeason.toString());
         hunterLabel.setText(HUNTER_PREFIX + stats.getHunterKills() + " caças");
         
-        // Atualizar o FieldStats interno do SimulatorView (usado por isViable)
-        // O reset() não reseta mais o contador de caças (foi modificado em FieldStats)
         this.stats.reset();
         stats.reset();
         fieldView.preparePaint();
         
-        // PRIMEIRO: Desenhar o terreno de fundo
         drawTerrainGrid(field);
         
-        // SEGUNDO: Desenhar as casas dos caçadores em laranja
         if (hunters != null) {
             for (Hunter hunter : hunters) {
                 if (hunter.isAlive()) {
@@ -135,26 +126,22 @@ public class SimulatorView extends JFrame {
             }
         }
         
-        // DEPOIS: Desenhar os atores por cima do terreno
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
                 Actor actor = field.getObjectAt(row, col);
                 if (actor != null && actor.isAlive()) {
                     if (actor instanceof Animal) {
                         Animal animal = (Animal) actor;
-                        // Atualizar ambos os FieldStats
                         this.stats.incrementCount(animal.getClass());
                         stats.incrementCount(animal.getClass());
                         fieldView.drawMark(col, row, getColor(animal.getClass()));
                     } else if (actor instanceof Hunter) {
-                        // Desenhar caçador com sua cor específica
                         fieldView.drawMark(col, row, getColor(Hunter.class));
                     }
                 }
             }
         }
         
-        // Finalizar contagens em ambos os FieldStats
         this.stats.countFinished();
         stats.countFinished();
         population.setText(POPULATION_PREFIX + stats.getPopulationDetails(field));
@@ -172,10 +159,7 @@ public class SimulatorView extends JFrame {
     }
 
     /**
-     * Fornece uma visão gráfica de um campo retangular. Esta é
-     * uma classe aninhada (uma classe definida dentro de outra) que
-     * define um componente customizado para a interface do usuário.
-     * Este componente exibe o campo.
+     * Fornece uma visão gráfica de um campo retangular.
      */
     private class FieldView extends JPanel {
         
@@ -208,11 +192,10 @@ public class SimulatorView extends JFrame {
         }
 
         /**
-         * Prepara para uma nova rodada de pintura. Como o componente
-         * pode ser redimensionado, calcula o fator de escala novamente.
+         * Prepara para uma nova rodada de pintura.
          */
         public void preparePaint() {
-            if (!size.equals(getSize())) { // se o tamanho mudou...
+            if (!size.equals(getSize())) {
                 size = getSize();
                 fieldImage = createImage(size.width, size.height);
                 g = fieldImage.getGraphics();
@@ -240,8 +223,7 @@ public class SimulatorView extends JFrame {
         }
 
         /**
-         * O componente de visão do campo precisa ser reexibido. Copia a
-         * imagem interna para a tela.
+         * O componente de visão do campo precisa ser reexibido.
          */
         @Override
         public void paintComponent(Graphics g) {

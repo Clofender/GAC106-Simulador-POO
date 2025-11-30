@@ -1,43 +1,37 @@
 /**
- * Classe responsável por gerenciar o clima e as estações do ano na simulação.
- * A estação muda ciclicamente a cada número fixo de passos.
- * * @author TP_Grupo08
+ * Sistema de clima que controla as estações do ano na simulação.
+ * As estações afetam o comportamento dos animais e caçadores.
  * 
+ * @author TP_Grupo08
  * @version 2025
  */
 public class WeatherSystem {
-    // Duração de cada estação em passos (steps)
-    private static final int SEASON_DURATION = 50;
-
-    // A estação atual
     private Season currentSeason;
-    // Contador de passos na estação atual
-    private int stepsInSeason;
+    private int dayCounter;
+    private static final int SEASON_DURATION = 100; // dias por estação
 
     /**
-     * Construtor do sistema climático.
-     * Inicia na Primavera.
+     * Cria um novo sistema de clima.
      */
     public WeatherSystem() {
-        this.currentSeason = Season.SPRING;
-        this.stepsInSeason = 0;
+        currentSeason = Season.SPRING;
+        dayCounter = 0;
     }
 
     /**
      * Avança o tempo no sistema climático.
-     * Verifica se é hora de mudar de estação.
+     * Muda as estações após um certo número de dias.
      */
     public void advanceTime() {
-        stepsInSeason++;
-        if (stepsInSeason >= SEASON_DURATION) {
+        dayCounter++;
+        if (dayCounter >= SEASON_DURATION) {
             changeSeason();
-            stepsInSeason = 0;
+            dayCounter = 0;
         }
     }
 
     /**
-     * Altera a estação atual para a próxima no ciclo:
-     * Primavera -> Verão -> Outono -> Inverno -> Primavera.
+     * Muda para a próxima estação.
      */
     private void changeSeason() {
         switch (currentSeason) {
@@ -57,11 +51,20 @@ public class WeatherSystem {
     }
 
     /**
-     * Obtém a estação atual.
-     * 
-     * @return A estação vigente.
+     * Retorna a estação atual.
+     *
+     * @return A estação atual.
      */
     public Season getCurrentSeason() {
         return currentSeason;
+    }
+
+    /**
+     * Retorna o contador de dias da estação atual.
+     *
+     * @return O número de dias na estação atual.
+     */
+    public int getDayCounter() {
+        return dayCounter;
     }
 }

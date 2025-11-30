@@ -2,8 +2,8 @@
  * Enumeração que representa as estações do ano na simulação.
  * Cada estação possui características que influenciam o comportamento dos
  * atores.
- * * @author TP_Grupo08
  * 
+ * @author TP_Grupo08
  * @version 2025
  */
 public enum Season {
@@ -13,9 +13,9 @@ public enum Season {
     WINTER("Inverno", 0.4); // Diminui drasticamente
 
     // Nome legível da estação para exibição
-    private final String name;
+    private String name;
     // Fator que multiplicará as taxas de reprodução
-    private final double breedingFactor;
+    private double breedingFactor;
 
     /**
      * Construtor da estação.

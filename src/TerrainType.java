@@ -71,6 +71,6 @@ public enum TerrainType {
                 return type;
             }
         }
-        return GRASS; // Fallback para grama
+        return GRASS;
     }
 }

@@ -8,11 +8,11 @@
  */
 public class Rabbit extends Herbivore {
     // --- Constantes Estáticas ---
-    private static final int BREEDING_AGE = 10;
+    private static final int BREEDING_AGE = 5;
     private static final int MAX_AGE = 25;
-    private static final double BREEDING_PROBABILITY = 0.01;
-    private static final int MAX_LITTER_SIZE = 3;
-    private static final int FOOD_VALUE = 4;
+    private static final double BREEDING_PROBABILITY = 0.6;
+    private static final int MAX_LITTER_SIZE = 23;
+    private static final int FOOD_VALUE = 10;
 
     /**
      * Cria um novo coelho.
@@ -32,7 +32,7 @@ public class Rabbit extends Herbivore {
      * @return O coelho jovem criado.
      */
     @Override
-    protected Animal createYoung(boolean randomAge, Field field, Location loc) {
+    public Animal createYoung(boolean randomAge, Field field, Location loc) {
         Rabbit young = new Rabbit(randomAge);
         young.setLocation(loc);
         field.place(young, loc);
@@ -62,7 +62,7 @@ public class Rabbit extends Herbivore {
      * @return A idade máxima do coelho.
      */
     @Override
-    protected int getMaxAge() {
+    public int getMaxAge() {
         return MAX_AGE;
     }
 
@@ -72,7 +72,7 @@ public class Rabbit extends Herbivore {
      * @return A idade de procriação do coelho.
      */
     @Override
-    protected int getBreedingAge() {
+    public int getBreedingAge() {
         return BREEDING_AGE;
     }
 
@@ -82,7 +82,7 @@ public class Rabbit extends Herbivore {
      * @return A probabilidade de procriação (0.0 a 1.0).
      */
     @Override
-    protected double getBreedingProbability() {
+    public double getBreedingProbability() {
         return BREEDING_PROBABILITY;
     }
 
@@ -92,7 +92,7 @@ public class Rabbit extends Herbivore {
      * @return O número máximo de filhotes por procriação.
      */
     @Override
-    protected int getMaxLitterSize() {
+    public int getMaxLitterSize() {
         return MAX_LITTER_SIZE;
     }
 }

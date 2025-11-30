@@ -9,8 +9,8 @@
 public class Buffalo extends Herbivore {
     // --- Constantes Estáticas ---
     private static final int BREEDING_AGE = 15;
-    private static final int MAX_AGE = 150;
-    private static final double BREEDING_PROBABILITY = 0.04;
+    private static final int MAX_AGE = 120;
+    private static final double BREEDING_PROBABILITY = 0.08;
     private static final int MAX_LITTER_SIZE = 2;
     private static final int FOOD_VALUE = 20;
 
@@ -32,7 +32,7 @@ public class Buffalo extends Herbivore {
      * @return O búfalo jovem criado.
      */
     @Override
-    protected Animal createYoung(boolean randomAge, Field field, Location loc) {
+    public Animal createYoung(boolean randomAge, Field field, Location loc) {
         Buffalo young = new Buffalo(randomAge);
         young.setLocation(loc);
         field.place(young, loc);
@@ -55,7 +55,7 @@ public class Buffalo extends Herbivore {
      * @return A idade máxima do búfalo.
      */
     @Override
-    protected int getMaxAge() {
+    public int getMaxAge() {
         return MAX_AGE;
     }
 
@@ -65,7 +65,7 @@ public class Buffalo extends Herbivore {
      * @return A idade de procriação do búfalo.
      */
     @Override
-    protected int getBreedingAge() {
+    public int getBreedingAge() {
         return BREEDING_AGE;
     }
 
@@ -75,7 +75,7 @@ public class Buffalo extends Herbivore {
      * @return A probabilidade de procriação (0.0 a 1.0).
      */
     @Override
-    protected double getBreedingProbability() {
+    public double getBreedingProbability() {
         return BREEDING_PROBABILITY;
     }
 
@@ -85,7 +85,7 @@ public class Buffalo extends Herbivore {
      * @return O número máximo de filhotes por procriação.
      */
     @Override
-    protected int getMaxLitterSize() {
+    public int getMaxLitterSize() {
         return MAX_LITTER_SIZE;
     }
 }
