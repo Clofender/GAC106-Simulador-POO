@@ -8,11 +8,24 @@
  */
 public class Buffalo extends Herbivore {
     // --- Constantes Estáticas ---
+    
+    /** Idade em que o búfalo pode começar a procriar */
     private static final int BREEDING_AGE = 15;
+    
+    /** Idade máxima que um búfalo pode atingir */
     private static final int MAX_AGE = 120;
+    
+    /** Probabilidade de procriação em cada passo (0.0 a 1.0) */
     private static final double BREEDING_PROBABILITY = 0.08;
+    
+    /** Número máximo de filhotes por procriação */
     private static final int MAX_LITTER_SIZE = 2;
+    
+    /** Valor nutricional quando comido por predadores */
     private static final int FOOD_VALUE = 20;
+    
+    /** Probabilidade de criação durante a população inicial */
+    private static final double CREATION_PROBABILITY = 0.008;
 
     /**
      * Cria um novo búfalo.
@@ -33,9 +46,16 @@ public class Buffalo extends Herbivore {
      */
     @Override
     public Animal createYoung(boolean randomAge, Field field, Location loc) {
+        // Cria uma nova instância de búfalo jovem
         Buffalo young = new Buffalo(randomAge);
+        
+        // Define a localização do búfalo jovem no campo
         young.setLocation(loc);
+        
+        // Coloca o búfalo jovem no campo na localização especificada
         field.place(young, loc);
+        
+        // Retorna o búfalo jovem criado (como tipo Animal - polimorfismo)
         return young;
     }
 
@@ -87,5 +107,14 @@ public class Buffalo extends Herbivore {
     @Override
     public int getMaxLitterSize() {
         return MAX_LITTER_SIZE;
+    }
+    
+    /**
+     * Retorna a probabilidade de criação de um búfalo durante a população inicial.
+     * 
+     * @return A probabilidade de criação (0.0 a 1.0).
+     */
+    public static double getCreationProbability() {
+        return CREATION_PROBABILITY;
     }
 }

@@ -4,15 +4,32 @@
  * Envelhecem, se movem, comem coelhos e morrem.
  * 
  * @author David J. Barnes and Michael Kolling
+ * @author TP_Grupo08 (modificações)
  * @version 2025
  */
 public class Fox extends Predator {
     // --- Constantes Estáticas ---
+    
+    /** Idade em que a raposa pode começar a procriar */
     private static final int BREEDING_AGE = 10;
+    
+    /** Idade máxima que uma raposa pode atingir */
     private static final int MAX_AGE = 90;
-    private static final double BREEDING_PROBABILITY = 0.022;
+    
+    /** Probabilidade de procriação em cada passo (0.0 a 1.0) */
+    private static final double BREEDING_PROBABILITY = 0.023;
+    
+    /** Número máximo de filhotes por procriação */
     private static final int MAX_LITTER_SIZE = 9;
+    
+    /** Valor nutricional quando comido por predadores */
     private static final int FOOD_VALUE = 12;
+    
+    /** Capacidade máxima do estômago da raposa */
+    private static final int MAX_FOOD_VALUE = 12;
+    
+    /** Probabilidade de criação durante a população inicial */
+    private static final double CREATION_PROBABILITY = 0.04;
 
     /**
      * Cria uma raposa. Pode ser recém-nascida (idade zero e sem fome)
@@ -27,16 +44,27 @@ public class Fox extends Predator {
     /**
      * Cria uma nova raposa jovem.
      * 
-     * @param randomAge Se true, o jovem terá idade aleatória.
-     * @param field O campo onde o jovem será colocado.
-     * @param loc A localização do jovem.
+     * @param randomAge Se true, terá idade aleatória.
+     * @param field O campo onde a raposa será colocada.
+     * @param loc A localização da raposa.
      * @return A raposa jovem criada.
      */
     @Override
     public Animal createYoung(boolean randomAge, Field field, Location loc) {
+        // Cria uma nova instância de raposa jovem
+        // O parâmetro randomAge define se nasce com idade aleatória ou zero
         Fox young = new Fox(randomAge);
+        
+        // Define a localização da raposa jovem no campo
+        // A localização é passada pelo método giveBirth() que encontrou um espaço livre
         young.setLocation(loc);
+        
+        // Posiciona a raposa jovem no campo na localização especificada
+        // O campo verifica se a localização é válida e transitável
         field.place(young, loc);
+        
+        // Retorna a raposa jovem como tipo Animal (polimorfismo)
+        // Permite que o método giveBirth() trate todos os animais de forma uniforme
         return young;
     }
 
@@ -69,7 +97,7 @@ public class Fox extends Predator {
      */
     @Override
     public int getMaxFoodValue() {
-        return 12;
+        return MAX_FOOD_VALUE;
     }
 
     /**
@@ -110,5 +138,14 @@ public class Fox extends Predator {
     @Override
     public int getMaxLitterSize() {
         return MAX_LITTER_SIZE;
+    }
+    
+    /**
+     * Retorna a probabilidade de criação de uma raposa durante a população inicial.
+     * 
+     * @return A probabilidade de criação (0.0 a 1.0).
+     */
+    public static double getCreationProbability() {
+        return CREATION_PROBABILITY;
     }
 }

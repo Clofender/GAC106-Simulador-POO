@@ -42,13 +42,28 @@ public class Hunter implements Actor {
      * @param stats Referência às estatísticas da simulação.
      */
     public Hunter(Location home, FieldStats stats) {
+        // Define a localização da casa do caçador (ponto de retorno após caças)
         this.homeLocation = home;
+        
+        // Inicializa a localização atual na mesma posição da casa (nasce em casa)
         this.location = home;
+        
+        // Marca o caçador como vivo/ativo
         this.alive = true;
+        
+        // Inicializa o contador de animais caçados como zero
         this.kills = 0;
+        
+        // Define que o caçador está ativo (pode caçar)
         this.active = true;
+        
+        // Armazena referência às estatísticas para registrar caças
         this.stats = stats;
+        
+        // Inicializa como não estando voltando para casa (está em casa)
         this.returningHome = false;
+        
+        // Inicializa o contador de passos no inverno (para movimento mais lento)
         this.winterStepCounter = 0;
     }
 
@@ -117,59 +132,68 @@ public class Hunter implements Actor {
      * @return true se chegou em casa, false se ainda está a caminho.
      */
     private boolean moveTowardsHome(Field currentField, Field updatedField) {
-        // Se já está em casa, não precisa mover
+        // Verifica se já está em casa
         if (location.equals(homeLocation)) {
+            // Se já está em casa, apenas se posiciona no campo atualizado
             if (updatedField != null) {
                 updatedField.placeHunter(this, homeLocation);
             }
-            return true;
+            return true; // Já chegou em casa
         }
         
-        // Calcular direção para casa (mover 1 bloco por step)
+        // Calcula a diferença de posição entre localização atual e casa
         int rowDiff = homeLocation.getRow() - location.getRow();
         int colDiff = homeLocation.getCol() - location.getCol();
         
+        // Começa com a posição atual
         int moveRow = location.getRow();
         int moveCol = location.getCol();
         
-        // Mover 1 bloco na direção da casa (priorizar maior diferença)
+        // Decide a direção do movimento (prioriza o eixo com maior diferença)
         if (Math.abs(rowDiff) > Math.abs(colDiff)) {
-            // Mover na direção da linha
-            if (rowDiff > 0) moveRow++;
-            else if (rowDiff < 0) moveRow--;
+            // Move na direção vertical (linha) - diferença maior nas linhas
+            if (rowDiff > 0) moveRow++; // Casa está abaixo, move para baixo
+            else if (rowDiff < 0) moveRow--; // Casa está acima, move para cima
         } else if (colDiff != 0) {
-            // Mover na direção da coluna
-            if (colDiff > 0) moveCol++;
-            else if (colDiff < 0) moveCol--;
+            // Move na direção horizontal (coluna) - diferença maior nas colunas
+            if (colDiff > 0) moveCol++; // Casa está à direita, move para direita
+            else if (colDiff < 0) moveCol--; // Casa está à esquerda, move para esquerda
         } else if (rowDiff != 0) {
-            // Se colDiff é 0, mover na linha
+            // Se colDiff é 0 mas rowDiff não é, move na vertical
             if (rowDiff > 0) moveRow++;
             else moveRow--;
         }
         
+        // Cria a localização de destino ideal
         Location moveLoc = new Location(moveRow, moveCol);
+        
+        // Verifica se pode mover para a localização ideal
         if (currentField.canAnimalMoveTo(moveLoc) && 
             (currentField.getObjectAt(moveLoc) == null || 
-             currentField.getObjectAt(moveLoc) == this)) {
-            location = moveLoc;
+            currentField.getObjectAt(moveLoc) == this)) {
+            // Movimento bem-sucedido para a direção ideal
+            location = moveLoc; // Atualiza a localização do caçador
             if (updatedField != null) {
-                updatedField.placeHunter(this, moveLoc);
+                updatedField.placeHunter(this, moveLoc); // Posiciona no campo atualizado
             }
+            // Retorna true se chegou em casa, false se ainda está a caminho
             return location.equals(homeLocation);
         } else {
-            // Se não pode mover na direção ideal, tentar adjacente livre
+            // Se não pode mover na direção ideal, tenta qualquer adjacente livre
             Location newLoc = currentField.freeAdjacentLocation(location);
             if (newLoc != null && !newLoc.equals(location)) {
+                // Move para um local adjacente livre qualquer
                 location = newLoc;
                 if (updatedField != null) {
                     updatedField.placeHunter(this, newLoc);
                 }
             } else {
-                // Se não pode se mover, ficar no lugar
+                // Se não pode se mover para nenhum local, fica no lugar
                 if (updatedField != null) {
                     updatedField.placeHunter(this, location);
                 }
             }
+            // Ainda não chegou em casa
             return false;
         }
     }
@@ -239,61 +263,69 @@ public class Hunter implements Actor {
      * Lógica de caça: o caçador procura por um animal nas adjacências.
      */
     private void goHunting(Field currentField, Field updatedField) {
+        // Obtém todas as localizações adjacentes à posição atual (embaralhadas)
         Iterator<Location> adjacentLocs = currentField.adjacentLocations(location);
         
+        // Procura por animais vivos nas posições adjacentes
         Location animalLocation = null;
         while (adjacentLocs.hasNext()) {
             Location loc = adjacentLocs.next();
             Object obj = currentField.getObjectAt(loc);
             
+            // Verifica se encontrou um animal vivo
             if (obj instanceof Animal) {
                 Animal prey = (Animal) obj;
                 if (prey.isAlive()) {
-                    animalLocation = loc;
-                    break;
+                    animalLocation = loc; // Marca a localização da presa
+                    break; // Para de procurar na primeira presa encontrada
                 }
             }
         }
         
+        // Se encontrou um animal para caçar
         if (animalLocation != null) {
+            // Move o caçador para a localização do animal
             location = animalLocation;
             
+            // Obtém o animal na localização (pode ser o mesmo ou outro devido à concorrência)
             Object obj = currentField.getObjectAt(animalLocation);
             if (obj instanceof Animal) {
                 Animal prey = (Animal) obj;
+                // Mata o animal
                 prey.setDead();
+                // Incrementa o contador pessoal de caças
                 kills++;
                 
+                // Registra a caça nas estatísticas globais da simulação
                 if (stats != null) {
                     stats.incrementHunterKills();
                 }
             }
             
+            // Posiciona o caçador no campo atualizado
             if (updatedField != null) {
                 updatedField.placeHunter(this, animalLocation);
             }
             
+            // Marca que deve voltar para casa após a caça
             returningHome = true;
-            return;
+            return; // Sai do método - caça concluída
         }
         
+        // Se não encontrou animais para caçar, move-se aleatoriamente
         Location newLoc = currentField.freeAdjacentLocation(location);
         if (newLoc != null && !newLoc.equals(location)) {
+            // Move para um local adjacente livre
             location = newLoc;
             if (updatedField != null) {
                 updatedField.placeHunter(this, newLoc);
             }
         } else {
+            // Se não pode se mover, fica no lugar atual
             if (updatedField != null) {
                 updatedField.placeHunter(this, location);
             }
         }
-    }
-
-    /**
-     * Define o caçador como morto.
-     */
-    public void setDead() {
-        alive = false;
+        // Continua caçando no próximo passo (não marca returningHome)
     }
 }

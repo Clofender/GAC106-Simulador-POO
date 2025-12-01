@@ -21,14 +21,21 @@ public class Location {
     
     /**
      * Implementa igualdade de conteúdo.
+     * Dois objetos Location são considerados iguais se têm a mesma linha e coluna.
      */
     @Override
     public boolean equals(Object obj) {
+        // Verifica se o objeto passado é uma instância de Location
         if(obj instanceof Location) {
+            // Faz o casting do objeto para o tipo Location
+            // Agora podemos acessar os métodos específicos da classe
             Location other = (Location) obj;
+            
+            // Compara as coordenadas de linha e coluna
             return row == other.getRow() && col == other.getCol();
         }
         else {
+            // Se o objeto não é uma Location, retorna false
             return false;
         }
     }

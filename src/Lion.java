@@ -8,11 +8,27 @@
  */
 public class Lion extends Predator {
     // --- Constantes Estáticas ---
+    
+    /** Idade em que o leão pode começar a procriar */
     private static final int BREEDING_AGE = 20;
+    
+    /** Idade máxima que um leão pode atingir */
     private static final int MAX_AGE = 100;
+    
+    /** Probabilidade de procriação em cada passo (0.0 a 1.0) */
     private static final double BREEDING_PROBABILITY = 0.01;
+    
+    /** Número máximo de filhotes por procriação */
     private static final int MAX_LITTER_SIZE = 5;
+    
+    /** Valor nutricional quando comido por predadores */
     private static final int FOOD_VALUE = 16;
+    
+    /** Capacidade máxima do estômago do leão */
+    private static final int MAX_FOOD_VALUE = 25;
+    
+    /** Probabilidade de criação durante a população inicial */
+    private static final double CREATION_PROBABILITY = 0.010;
 
     /**
      * Cria um novo leão.
@@ -33,12 +49,22 @@ public class Lion extends Predator {
      */
     @Override
     public Animal createYoung(boolean randomAge, Field field, Location loc) {
+        // Cria uma nova instância de leão jovem
+        // O parâmetro randomAge define se o filhote nasce com idade zero ou idade aleatória
         Lion young = new Lion(randomAge);
+        
+        // Define a localização do leão jovem no campo
+        // Esta é a posição onde o filhote vai nascer
         young.setLocation(loc);
+        
+        // Coloca o leão jovem no campo na localização especificada
+        // Isso registra o novo animal no sistema de simulação
         field.place(young, loc);
+        
+        // Retorna o leão jovem criado
+        // O tipo de retorno é Animal para permitir polimorfismo
         return young;
     }
-
     /**
      * Verifica se este predador pode comer o animal especificado.
      * Leões comem coelhos, búfalos e raposas.
@@ -60,7 +86,7 @@ public class Lion extends Predator {
      */
     @Override
     public int getMaxFoodValue() {
-        return 25;
+        return MAX_FOOD_VALUE;
     }
 
     /**
@@ -118,5 +144,14 @@ public class Lion extends Predator {
     @Override
     public int getMaxLitterSize() {
         return MAX_LITTER_SIZE;
+    }
+    
+    /**
+     * Retorna a probabilidade de criação de um leão durante a população inicial.
+     * 
+     * @return A probabilidade de criação (0.0 a 1.0).
+     */
+    public static double getCreationProbability() {
+        return CREATION_PROBABILITY;
     }
 }

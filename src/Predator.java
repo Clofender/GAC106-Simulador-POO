@@ -18,10 +18,12 @@ public abstract class Predator extends Animal {
      * @param randomAge Se true, o predador terá idade aleatória.
      */
     public Predator(boolean randomAge) {
-        super(randomAge);
+        super(randomAge);  // Chamar construtor da classe pai (Animal)
         if (randomAge) {
+            // Se idade aleatória, comida também aleatória
             foodLevel = RandomGenerator.nextInt(getMaxFoodValue());
         } else {
+            // Se recém-nascido, começa com estômago cheio
             foodLevel = getMaxFoodValue();
         }
     }
@@ -36,13 +38,15 @@ public abstract class Predator extends Animal {
      */
     @Override
     public Location findNextLocation(Field currentField, Field updatedField) {
-        incrementHunger();
+        incrementHunger();  // Reduzir nível de comida a cada movimento
         
+        // Primeiro: tentar encontrar comida nas adjacências
         Location foodLocation = findFood(currentField, getLocation());
         if (foodLocation != null) {
-            return foodLocation;
+            return foodLocation;  // Se encontrou comida, mover para lá
         }
         
+        // Segundo: se não encontrou comida, mover aleatoriamente
         return updatedField.freeAdjacentLocation(getLocation());
     }
 
@@ -54,36 +58,41 @@ public abstract class Predator extends Animal {
      * @return A localização da presa, ou null se não encontrar.
      */
     private Location findFood(Field field, Location location) {
+        // Obter iterador para todas as localizações adjacentes
         Iterator<Location> it = field.adjacentLocations(location); 
         
+        // Verificar cada localização adjacente
         while(it.hasNext()) {
-            Location where = it.next();
-            Object object = field.getObjectAt(where);
+            Location where = it.next();  // Próxima localização adjacente
+            Object object = field.getObjectAt(where);  // Objeto naquela posição
             
+            // Verificar se é um animal (presa potencial)
             if(object instanceof Animal) {
-                Animal prey = (Animal) object;
+                Animal prey = (Animal) object;  // Cast para Animal
                 
+                // Verificar se a presa está viva e se pode ser comida
                 if(prey.isAlive() && canEat(prey)) { 
-                    prey.setDead();
-                    this.foodLevel += prey.getFoodValue();
+                    prey.setDead();  // Matar a presa
+                    this.foodLevel += prey.getFoodValue();  // Ganhar energia da presa
                     
+                    // Não ultrapassar capacidade máxima do estômago
                     if (this.foodLevel > getMaxFoodValue()) {
                         this.foodLevel = getMaxFoodValue();
                     }
-                    return where;     
+                    return where;  // Retornar localização da presa encontrada
                 }
             }
         }
-        return null;
+        return null;  // Nenhuma presa encontrada
     }
 
     /**
      * Aumenta a fome do predador. Pode resultar em morte por fome.
      */
     private void incrementHunger() {
-        foodLevel--;
+        foodLevel--;  // Reduzir nível de comida
         if (foodLevel <= 0) {
-            setDead();
+            setDead();  // Morrer se ficar sem comida
         }
     }
     

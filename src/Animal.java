@@ -144,15 +144,26 @@ public abstract class Animal implements Actor {
      * @param field O campo onde os novos animais serão colocados.
      */
     private void giveBirth(java.util.List<Animal> newAnimals, Field field) {
+        // Calcula quantos filhotes serão gerados neste passo
         int births = breed();
+        
+        // Para cada filhote a ser gerado...
         for (int b = 0; b < births; b++) {
+            // Procura uma localização adjacente livre próxima ao animal pai/mãe
             Location loc = field.freeAdjacentLocation(getLocation());
+            
+            // Se encontrou uma localização livre...
             if (loc != null) {
+                // Cria um novo animal jovem (sem idade aleatória)
                 Animal young = createYoung(false, field, loc);
+                
+                // Se o animal jovem foi criado com sucesso...
                 if (young != null) {
+                    // Adiciona o novo animal à lista de animais a serem inseridos na simulação
                     newAnimals.add(young);
                 }
             }
+            // Se não encontrou localização livre, o filhote não nasce (superlotação)
         }
     }
 
@@ -173,17 +184,27 @@ public abstract class Animal implements Actor {
      * @return O número de nascimentos (pode ser zero).
      */
     private int breed() {
+        // Inicializa o contador de nascimentos como zero
         int births = 0;
+        
+        // Obtém a probabilidade base de procriação da espécie
         double probability = getBreedingProbability();
         
+        // Verifica se existe sistema de clima ativo
         if (weatherSystem != null) {
+            // Obtém a estação atual do sistema climático
             Season currentSeason = weatherSystem.getCurrentSeason();
+            // Ajusta a probabilidade multiplicando pelo fator da estação
             probability *= currentSeason.getBreedingFactor();
         }
         
+        // Verifica se o animal pode procriar E se passou no teste de probabilidade
         if (canBreed() && rand.nextDouble() <= probability) {
+            // Gera um número aleatório de filhotes entre 1 e o tamanho máximo da ninhada
             births = rand.nextInt(getMaxLitterSize()) + 1;
         }
+        
+        // Retorna o número de nascimentos (pode ser 0 se não procriou)
         return births;
     }
 
@@ -208,6 +229,7 @@ public abstract class Animal implements Actor {
      *
      * @return True se o animal está vivo.
      */
+    @Override
     public boolean isAlive() {
         return alive;
     }
@@ -217,6 +239,7 @@ public abstract class Animal implements Actor {
      *
      * @param location A nova localização.
      */
+    @Override
     public void setLocation(Location location) {
         this.location = location;
     }
@@ -234,6 +257,7 @@ public abstract class Animal implements Actor {
     /**
      * @return A localização atual do animal.
      */
+    @Override
     public Location getLocation() {
         return location;
     }

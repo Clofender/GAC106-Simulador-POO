@@ -13,9 +13,9 @@ public enum Season {
     WINTER("Inverno", 0.4); // Diminui drasticamente
 
     // Nome legível da estação para exibição
-    private String name;
+    private final String name;
     // Fator que multiplicará as taxas de reprodução
-    private double breedingFactor;
+    private final double breedingFactor;
 
     /**
      * Construtor da estação.
